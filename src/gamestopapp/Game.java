@@ -6,14 +6,14 @@
 package gamestopapp;
 
 import java.awt.Image;
-import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStreamReader;
-import java.net.MalformedURLException;
 import java.net.URL;
 import javax.imageio.ImageIO;
+import org.jsoup.Jsoup;
+import org.jsoup.nodes.Document;
+import org.jsoup.nodes.Element;
+import org.jsoup.select.Elements;
 
-// TRY JSOUP
 
 /**
  *
@@ -26,118 +26,69 @@ public class Game {
     private double oldNewPrice = -1;
     private double usedPrice = -1;
     private double oldUsedPrice = -1;
-    private URL url = null;
+    private String url = null;
     private Image image = null;
 
-    public Game(URL url) throws IOException
+    public Game(String url) throws IOException
     {
-        this.setUrl(url);        // set the url
+        Document doc = Jsoup.connect(url).get();        // return the HTML page        
+        Element body = doc.body();                      // get the body
         
-        // open the connection with the page to get the HTML
-        BufferedReader in = new BufferedReader ( new InputStreamReader(url.openStream()) );
-        String str = in.readLine();
-
-        // Find the Title ------------------------------------------------
-        while ( str!= null && !str.contains("<div class=\"prodTitle\">") ){
-            str = in.readLine();
+        Elements tmp;
+        
+        // Set the URL
+        this.setUrl(url);
+        
+        // Find the title
+        tmp = body.getElementsByClass("prodTitle");
+        tmp = tmp.get(0).getElementsByTag("h1");
+        this.setTitle( tmp.get(0).text() );
+        
+        // find the Image
+        tmp = body.getElementsByClass("prodImg max");
+        this.setImage( ImageIO.read( new URL(tmp.get(0).absUrl("href")) ) );
+        
+        // find the prices
+        tmp = body.getElementsByClass("buySection");
+        
+        
+        for ( Element i : tmp.get(0).getElementsByClass("singleVariantDetails") ){
+            for ( Element j : i.getElementsByClass("singleVariantText") ){
+                
+                String prezzo = null;
+                
+                if ( j.getElementsByClass("variantName").get(0).text().equals("Nuovo") )
+                {
+                    prezzo = j.getElementsByClass("prodPriceCont").get(0).text();
+                    prezzo = prezzo.substring( prezzo.indexOf(' ') );
+                    prezzo = prezzo.replace(',', '.');
+                    this.setNewPrice( Double.parseDouble(prezzo) );
+                    
+                    for ( Element k : j.getElementsByClass("olderPrice") ){
+                        prezzo = k.text();
+                        prezzo = prezzo.substring( prezzo.indexOf(' ') );
+                        prezzo = prezzo.replace(',', '.');
+                        this.setOldNewPrice( Double.parseDouble(prezzo) );
+                    }
+                }
+                
+                if ( j.getElementsByClass("variantName").get(0).text().equals("Usato") )
+                {
+                    prezzo = j.getElementsByClass("prodPriceCont").get(0).text();
+                    prezzo = prezzo.substring( prezzo.indexOf(' ') );
+                    prezzo = prezzo.replace(',', '.');
+                    this.setUsedPrice( Double.parseDouble(prezzo) );
+                    
+                    for ( Element k : j.getElementsByClass("olderPrice") ){
+                        prezzo = k.text();
+                        prezzo = prezzo.substring( prezzo.indexOf(' ') );
+                        prezzo = prezzo.replace(',', '.');
+                        this.setOldUsedPrice( Double.parseDouble(prezzo) );
+                    }
+                }
+            }
         }
-
-        while ( str!= null && !str.contains("<span itemprop=\"name\">") ){
-            str = in.readLine();
-        }
-
-        str = in.readLine();
         
-        str = str.trim();                           // remove spaces before and after the title
-        str = str.substring(0, str.length()-7);     // remove the &nbsp;
-        this.setTitle(str);                         // set the title
-        
-        // Find the Image ------------------------------------------------
-        
-        while ( str!= null && !str.contains("3max.jpg") ){
-            str = in.readLine();
-        }        
-        
-        str = str.substring( str.lastIndexOf("https://"), str.lastIndexOf("3max.jpg")+8 );  // remove the part before and after the url 
-        this.setImage( ImageIO.read( new URL(str) ) );                                      // set the image
-        
-        // Find the price ------------------------------------------------
-        
-        while ( str!= null && !str.contains("buySection") ){
-            str = in.readLine();
-        }
-        
-        boolean exit = false;
-        
-        do {
-            while ( str!= null && !str.contains("singleVariantDetails") ){
-                str = in.readLine();
-            }
-
-            while ( str!= null && !str.contains("variantName") ){
-                str = in.readLine();
-            }
-
-            if ( str!= null && str.contains("Nuovo") )
-            {
-                while ( str!= null && !str.contains("valuteCont pricetext") ){
-                    str = in.readLine();
-                }
-
-                str = str.substring( str.indexOf("€")+2 );
-                str = str.substring( 0, str.indexOf("<") );                
-                str = str.replace(',', '.');                
-                this.setNewPrice( Double.parseDouble(str) );        // set the new price
-                
-                while ( str!= null && !str.contains("singleVariantDetails") && !str.contains("olderPrice") ){
-                    str = in.readLine();
-                }
-                
-                // if I read this, it means that I have found the Used Price
-                if ( str!= null && str.contains("singleVariantDetails") )
-                    continue;
-                
-                if ( str!= null ){
-                    str = str.substring( str.indexOf("€")+2 );
-                    str = str.substring( 0, str.indexOf("<") );
-                    str = str.replace(',', '.');
-                    this.setOldNewPrice( Double.parseDouble(str) );        // set the old new price
-                }
-            }
-
-            if ( str!= null && str.contains("Usato") )
-            {                
-                while ( str!= null && !str.contains("valuteCont pricetext") ){
-                    str = in.readLine();
-                }
-
-                str = str.substring( str.indexOf("€")+2 );
-                str = str.substring( 0, str.indexOf("<") );
-                str = str.replace(',', '.');
-                this.setUsedPrice( Double.parseDouble(str) );        // set the old price
-                
-                while ( str!= null && !str.contains("olderPrice") ){
-                    str = in.readLine();
-                }
-                
-                if ( str!=null ) {
-                    str = str.substring( str.indexOf("€")+2 );
-                    str = str.substring( 0, str.indexOf("<") );
-                    str = str.replace(',', '.');
-                    this.setOldUsedPrice( Double.parseDouble(str) );        // set the old used price
-                }                
-                
-                // I think every game has a Used Price, In the future I will change this
-                exit = true;
-            }
-                
-        } while ( !exit && str!=null );
-        
-        in.close();     // release resources  
-    }
-    
-    public Game (String url) throws MalformedURLException, IOException {
-        this( new URL(url) );
     }
 
     private void setTitle(String title) {
@@ -164,7 +115,7 @@ public class Game {
             this.oldUsedPrice = oldUsedPrice;
     }
 
-    private void setUrl(URL url) {
+    private void setUrl(String url) {
         this.url = url;
     }
 
@@ -184,7 +135,7 @@ public class Game {
         return usedPrice;
     }
 
-    public URL getUrl() {
+    public String getUrl() {
         return url;
     }
 
@@ -201,14 +152,11 @@ public class Game {
     }
     
     public void update () throws IOException {
-        Game tmp = new Game(url);
-        //this.title = tmp.getTitle();
+        Game tmp = new Game( this.url );
         this.newPrice = tmp.getNewPrice();
         this.usedPrice = tmp.getUsedPrice();
         this.oldNewPrice = tmp.getOldNewPrice();
         this.oldUsedPrice = tmp.getOldUsedPrice();
-        //this.image = tmp.getImage();
-        //this.url = tmp.getUrl();
     }
 
     @Override
@@ -237,10 +185,5 @@ public class Game {
         
         return str;
     }
-    
-    
-    
-    
-    
     
 }

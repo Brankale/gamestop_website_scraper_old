@@ -34,6 +34,8 @@ public class GamestopApp {
             System.out.println( g.toString() );
             
             
+            
+            
         } catch (IOException ex) {
             Logger.getLogger(GamestopApp.class.getName()).log(Level.SEVERE, null, ex);
         }
