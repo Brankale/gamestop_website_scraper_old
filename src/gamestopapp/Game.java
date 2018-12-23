@@ -6,8 +6,12 @@
 package gamestopapp;
 
 import java.awt.Image;
+import java.util.List;
+import java.util.ArrayList;
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 import java.net.URL;
+import java.net.URLEncoder;
 import javax.imageio.ImageIO;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
@@ -28,6 +32,7 @@ public class Game {
     private double oldUsedPrice = -1;
     private String url = null;
     private Image image = null;
+    private String description = null;
 
     public Game(String url) throws IOException
     {
@@ -89,6 +94,15 @@ public class Game {
             }
         }
         
+        // Find the description        
+        Element description;
+        description = body.getElementById("prodDesc");
+        description = description.getElementsByClass("textDesc").get(0);
+        
+        // formattazione non sempre corretta (sarebbe meglio aggiungere i \n alla fine di ogni riga
+        // Per testare usare questo link: https://www.gamestop.it/PS4/Games/99826
+        this.setDescription( description.text() );
+        
     }
 
     private void setTitle(String title) {
@@ -122,6 +136,15 @@ public class Game {
     private void setImage(Image image) {
         this.image = image;
     }
+
+    private void setDescription(String description) {
+        this.description = description;
+    }
+
+    public String getDescription() {
+        return description;
+    }
+    
 
     public String getTitle() {
         return title;
@@ -184,6 +207,27 @@ public class Game {
             str += "\n";      
         
         return str;
+    }
+    
+    // to change the return value
+    // filtri di ricerca
+    public static List<String> searchGame ( String searchedGame ) throws UnsupportedEncodingException, IOException {
+        
+        List<String> games = new ArrayList<>();
+        
+        String query = URLEncoder.encode(searchedGame, "UTF-8");    // control the second parameter
+        query = "https://www.gamestop.it/SearchResult/QuickSearch?q=" + query;        
+        
+        Document doc = Jsoup.connect(query).get();
+        Element body = doc.body();
+        
+        Element gameList = body.getElementById("productsList");
+        for ( Element e : gameList.getElementsByClass("singleProduct") ){
+            String link = e.getElementsByClass("singleProdInfo").get(0).getElementsByAttribute("href").attr("href");
+            games.add( "https://www.gamestop.it/" + link );
+        }
+        
+        return games;
     }
     
 }

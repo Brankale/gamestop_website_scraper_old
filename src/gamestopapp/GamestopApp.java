@@ -6,6 +6,7 @@
 package gamestopapp;
 
 import java.io.IOException;
+import java.util.Scanner;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -20,6 +21,8 @@ public class GamestopApp {
      */
     public static void main(String[] args) {
         try {
+            /*
+            
             Game g = new Game("https://www.gamestop.it/PS4/Games/110143/detroit-become-human");
             System.out.println( g.toString() );
             
@@ -33,7 +36,21 @@ public class GamestopApp {
             g = new Game("https://www.gamestop.it/PS3/Games/31910/persona-4-arena-limited-edition");
             System.out.println( g.toString() );
             
+            g = new Game("https://www.gamestop.it/PS4/Games/99826");
+            System.out.println( g.toString() );
             
+            */
+            
+            while (true) {
+                
+                Scanner in = new Scanner(System.in);
+                System.out.print("\n\n\nInserisci nome gioco: ");
+                String gameName = in.nextLine();
+                
+                for ( String s : Game.searchGame(gameName) ) {
+                    System.out.println(s);
+                }
+            }
             
             
         } catch (IOException ex) {
