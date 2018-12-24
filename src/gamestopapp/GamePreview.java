@@ -11,7 +11,7 @@ public class GamePreview {
     private String title;
     private String url;
     private String platform;    // not definitive
-    private Image image;        // not definitive
+    private Image image;        // not definitive (can be just a String with the URL / may break compatibility with Android)
 
     public GamePreview(String title, String url, String platform, String image) throws MalformedURLException, IOException {
         this.title = title;

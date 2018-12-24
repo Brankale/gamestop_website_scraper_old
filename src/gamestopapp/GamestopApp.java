@@ -1,30 +1,17 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package gamestopapp;
 
-import java.io.IOException;
 import java.util.Scanner;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-/**
- *
- * @author Utente
- */
 public class GamestopApp {
 
-    /**
-     * @param args the command line arguments
-     */
     public static void main(String[] args) {
         try {
-            /*
             
             Game g = new Game("https://www.gamestop.it/PS4/Games/110143/detroit-become-human");
             System.out.println( g.toString() );
+            
             
             g = new Game("https://www.gamestop.it/PS4/Games/101550/persona-5-steelbook-launch-edition");
             System.out.println( g.toString() );
@@ -39,21 +26,19 @@ public class GamestopApp {
             g = new Game("https://www.gamestop.it/PS4/Games/99826");
             System.out.println( g.toString() );
             
-            */
             
+            Scanner in = new Scanner(System.in);
             while (true) {
-                
-                Scanner in = new Scanner(System.in);
                 System.out.print("\n\n\nInserisci nome gioco: ");
                 String gameName = in.nextLine();
                 
-                for ( String s : Game.searchGame(gameName) ) {
-                    System.out.println(s);
+                for ( GamePreview game : Game.searchGame(gameName) ) {
+                    System.out.println(game);
                 }
             }
             
             
-        } catch (IOException ex) {
+        } catch (Exception ex) {
             Logger.getLogger(GamestopApp.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
