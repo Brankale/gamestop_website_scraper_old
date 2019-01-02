@@ -9,6 +9,8 @@ public class GamestopApp {
     public static void main(String[] args) {
         try {
             
+            long start = System.currentTimeMillis();
+            
             Game g = new Game("https://www.gamestop.it/PS4/Games/110143/detroit-become-human");
             System.out.println( g.toString() );
             
@@ -25,6 +27,14 @@ public class GamestopApp {
             
             g = new Game("https://www.gamestop.it/PS4/Games/99826");
             System.out.println( g.toString() );
+            
+            g = new Game("https://www.gamestop.it/PS4/Games/34052/gta-v");
+            System.out.println( g.toString() );
+            
+            long finish = System.currentTimeMillis();
+            
+            System.out.println( (finish-start) + "ms" );
+            
             
             
             Scanner in = new Scanner(System.in);

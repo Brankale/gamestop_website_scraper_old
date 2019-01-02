@@ -13,127 +13,106 @@ import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 
+/*
+    private double vote;                    // not definitive (I find it useless, if you want a game the vote doesn't matter but sometime can help)
+    private int usersNumber;                // not definitive (I find it useless)
+    private List<Image> gallery;            // not definitive (may include photos and videos) (can be just a List<String> that contains the URLs)
+    private String pegi;                    // not definitive (can be a number)
+    private String idNew;                   // not definitive (can be a number)
+    private String idUsed;                  // not definitive (can be a number)
+    private String genre;                   // not definitive (enum would be perfect but a game can have multiple genre)
+    private String description;
+    private String addToCart;
+    private boolean storeAvailability;      // to discuss
+    // the "BONUS" section should be added
+*/
+
 public class Game {
     
     private String title;
     private String url;
     private String publisher;
-    private String platform;                // not definitive (enum would be perfect / the name is not aprropriate for "Gadget" and "Varie" (platform -> contentType/type ) 
-    private double vote;                    // not definitive (I find it useless, if you want a game the vote doesn't matter but sometime can help)
-    private int usersNumber;                // not definitive (I find it useless)
-    private Image image;                    // not definitive (can be just a String with the URL / may break compatibility with Android)
-    private List<Image> gallery;            // not definitive (may include photos and videos) (can be just a List<String> that contains the URLs)
+    private String platform;                // using String type, the app can memorize newer platform without making any changes to the app 
+    private Image cover;                    // not definitive (can be just a String with the URL / may break compatibility with Android)
     private double newPrice;
-    private List<Double> olderNewPrices;    // not definitive (in rare cases there are two olderPrices but we can use the bigger olderPrice and use a double)
+    private List<Double> olderNewPrices;    // in rare cases there are two older prices
     private double usedPrice;
-    private List<Double> olderUsedPrices;   // not definitive (in rare cases there are two olderPrices but we can use the bigger olderPrice and use a double)
-    private String pegi;                    // not definitive (can be a number)
-    private String idNew;                   // not definitive (can be a number)
-    private String idUsed;                  // not definitive (can be a number)
-    private String genre;                   // not definitive (enum would be perfect but a game can have multiple genre)
-    private String releaseDate;             // not definitive (it could be better using an appropriate class)
-    private String description;
-    private boolean storeAvailability;
-    private String addToCart;
-    // the "BONUS" section should be added    
+    private List<Double> olderUsedPrices;   // in rare cases there are two older prices
+    private String releaseDate;
 
     private Game() {
         this.title = null;
         this.url = null;
         this.publisher = null;
         this.platform = null;
-        this.vote = -1;
-        this.usersNumber = -1;
-        this.image = null;
-        this.gallery = new ArrayList<>();
+        this.cover = null;
         this.newPrice = -1;
         this.olderNewPrices = new ArrayList<>();
         this.usedPrice = -1;
         this.olderUsedPrices = new ArrayList<>();
-        this.pegi = null;
-        this.idNew = null;
-        this.idUsed = null;
-        this.genre = null;
         this.releaseDate = null;
-        this.description = null;
-        this.storeAvailability = false;
-        this.addToCart = null;
     }
     
-    public Game (String url) throws IOException{
+    public Game (String url) throws IOException {
         
-        this();
+        this();        
         
-        Document doc = Jsoup.connect(url).get();        // return the HTML page        
-        Element body = doc.body();                      // get the body
+        Document html = Jsoup.connect(url).get();        // return the HTML page
         
-        Elements tmp;
+        Element body = html.body();
         
-        // Set the URL
+        Element prodMain = body.getElementById("prodMain");
+        
+        Element mainInfo = prodMain.getElementsByClass("mainInfo").get(0);
+        
+        // in this section we can find: title, publisher, platform, vote, voting users
+        Element prodTitle = mainInfo.getElementsByClass("prodTitle").get(0);        
+        this.title = prodTitle.getElementsByTag("h1").text();
+        this.publisher = prodTitle.getElementsByTag("strong").text();
+        this.platform = url.split("/")[3];
         this.url = url;
         
-        // Find the title
-        tmp = body.getElementsByClass("prodTitle");
-        tmp = tmp.get(0).getElementsByTag("h1");
-        this.title = tmp.get(0).text();
+        // in this section we can find: cover, gallery
+        Element prodLeftBlock = prodMain.getElementsByClass("prodLeftBlock").get(0);
+        String imageURL = prodLeftBlock.getElementsByClass("prodImg max").get(0).attr("href");
+        this.cover = ImageIO.read( new URL(imageURL) );        
         
-        // find the Image
-        tmp = body.getElementsByClass("prodImg max");
-        this.image = ImageIO.read( new URL(tmp.get(0).absUrl("href")) );
+        // in this section we can find: prices, pegi, id, genre, release date, availability, addToCard
+        Element prodRightBlock = prodMain.getElementsByClass("prodRightBlock").get(0);        
+        Element buySection = prodRightBlock.getElementsByClass("buySection").get(0);
         
-        // find the prices
-        tmp = body.getElementsByClass("buySection");
-        
-        
-        for ( Element i : tmp.get(0).getElementsByClass("singleVariantDetails") ){
-            for ( Element j : i.getElementsByClass("singleVariantText") ){
-                
-                String prezzo = null;
-                
-                if ( j.getElementsByClass("variantName").get(0).text().equals("Nuovo") )
-                {
-                    prezzo = j.getElementsByClass("prodPriceCont").get(0).text();
-                    prezzo = prezzo.substring( prezzo.indexOf(' ') );
-                    prezzo = prezzo.replace(',', '.');
-                    this.newPrice = Double.parseDouble(prezzo);
-                    
-                    for ( Element k : j.getElementsByClass("olderPrice") ){
-                        prezzo = k.text();
-                        prezzo = prezzo.substring( prezzo.indexOf(' ') );
-                        prezzo = prezzo.replace(',', '.');
-                        this.olderNewPrices.add( Double.parseDouble(prezzo) );
-                    }
-                }
-                
-                if ( j.getElementsByClass("variantName").get(0).text().equals("Usato") )
-                {
-                    prezzo = j.getElementsByClass("prodPriceCont").get(0).text();
-                    prezzo = prezzo.substring( prezzo.indexOf(' ') );
-                    prezzo = prezzo.replace(',', '.');
-                    this.usedPrice = Double.parseDouble(prezzo);
-                    
-                    for ( Element k : j.getElementsByClass("olderPrice") ){
-                        prezzo = k.text();
-                        prezzo = prezzo.substring( prezzo.indexOf(' ') );
-                        prezzo = prezzo.replace(',', '.');
-                        this.olderUsedPrices.add( Double.parseDouble(prezzo) );
-                    }
+        for ( Element singleVariantDetails : buySection.getElementsByClass("singleVariantDetails") ){
+            
+            Element singleVariantText = singleVariantDetails.getElementsByClass("singleVariantText").get(0);                
+            String price = null;
+
+            if ( singleVariantText.getElementsByClass("variantName").get(0).text().equals("Nuovo") )
+            {
+                price = singleVariantText.getElementsByClass("prodPriceCont").get(0).text();
+                this.newPrice = stringToPrice(price);
+
+                for ( Element olderPrice : singleVariantText.getElementsByClass("olderPrice") ){
+                    price = olderPrice.text();
+                    this.olderNewPrices.add( stringToPrice(price) );
                 }
             }
+
+            if ( singleVariantText.getElementsByClass("variantName").get(0).text().equals("Usato") )
+            {                
+                price = singleVariantText.getElementsByClass("prodPriceCont").get(0).text();
+                this.usedPrice = stringToPrice(price);
+
+                for ( Element olderPrice : singleVariantText.getElementsByClass("olderPrice") ){                    
+                    price = olderPrice.text();
+                    this.olderUsedPrices.add( stringToPrice(price) );
+                }
+            }
+            
         }
-        
-        // Find the description        
-        Element description;
-        description = body.getElementById("prodDesc");
-        description = description.getElementsByClass("textDesc").get(0);
-        
-        // formattazione non sempre corretta (sarebbe meglio aggiungere i \n alla fine di ogni riga
-        // Per testare usare questo link: https://www.gamestop.it/PS4/Games/99826
-        this.description = description.text();
-        
+
     }
     
-    // do not implement setter (beacause it's better not to use them in the constructor so they are useless)
+    // do not implement setter
     
     // implements getter when all the attributes are defintive
 
@@ -143,24 +122,27 @@ public class Game {
         String str = "";
         
         str += "Title: " + title + "\n";
+        str += "Publisher: " + publisher + "\n";
+        str += "Platform: " + platform + "\n";
         str += "URL: " + url + "\n";
         
         if ( newPrice > 0 )
             str += "New Price: " + newPrice;
         
-        if ( olderNewPrices.size()>0 && olderNewPrices.get(0) > 0 )
-            str += "\tOld New Price: " + olderNewPrices.get(0) + "\n";
-        else
-            str += "\n";
+        for ( double price : olderNewPrices ){
+            str += "\tOld New Price: " + price + "\n";
+        }
+        
+        if ( olderNewPrices.size() < 1 ) { str += "\n"; }
         
         if ( usedPrice > 0 )
             str += "Used Price: " + usedPrice;
         
-        if ( olderUsedPrices.size()>0 && olderUsedPrices.get(0) > 0 )
-            str += "\tOld Used Price: " + olderUsedPrices.get(0) + "\n";
-        else
-            str += "\n";      
+        for ( double price : olderUsedPrices ){
+            str += "\tOld Used Price: " + price + "\n";
+        }
         
+        str += "\n";
         return str;
     }
     
@@ -198,6 +180,11 @@ public class Game {
         return searchedGames;
     }
     
+    private double stringToPrice ( String price ) {
+        price = price.substring( price.indexOf(' ') );
+        price = price.replace(',', '.');
+        return Double.parseDouble(price);
+    }
     
     
 }
