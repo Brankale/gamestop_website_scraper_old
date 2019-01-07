@@ -11,13 +11,13 @@ import javax.imageio.ImageIO;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
+import org.jsoup.nodes.TextNode;
 import org.jsoup.select.Elements;
 
 /*
     private double vote;                    // not definitive (I find it useless, if you want a game the vote doesn't matter but sometime can help)
     private int usersNumber;                // not definitive (I find it useless)
     private List<Image> gallery;            // not definitive (may include photos and videos) (can be just a List<String> that contains the URLs)
-    private String pegi;                    // not definitive (can be a number)
     private String idNew;                   // not definitive (can be a number)
     private String idUsed;                  // not definitive (can be a number)
     private String genre;                   // not definitive (enum would be perfect but a game can have multiple genre)
@@ -38,6 +38,8 @@ public class Game {
     private List<Double> olderNewPrices;    // in rare cases there are two older prices
     private double usedPrice;
     private List<Double> olderUsedPrices;   // in rare cases there are two older prices
+    private List<String> pegi;
+    //private List<String> genre;
     private String releaseDate;
 
     private Game() {
@@ -50,6 +52,8 @@ public class Game {
         this.olderNewPrices = new ArrayList<>();
         this.usedPrice = -1;
         this.olderUsedPrices = new ArrayList<>();
+        this.pegi = new ArrayList<>();
+        //this.genre = new ArrayList<>();
         this.releaseDate = null;
     }
     
@@ -109,7 +113,40 @@ public class Game {
             }
             
         }
-
+        
+        
+        // in this section we can find pegi, id, genre, releaseDate
+        Element addedDet = prodRightBlock.getElementById("addedDet");       
+        
+        // cycle is totally useless, is just for performance        
+        Element ageBlock = addedDet.getElementsByClass("ageBlock").get(0);
+        
+        // to replaced with getElementByClass StartingWith
+        for ( Element e : ageBlock.getAllElements() )
+        {
+            if ( e.attr("class").equals("pegi18") ) { this.pegi.add("pegi18"); continue; }
+            if ( e.attr("class").equals("pegi16") ) { this.pegi.add("pegi16"); continue; }
+            if ( e.attr("class").equals("pegi12") ) { this.pegi.add("pegi12"); continue; }
+            if ( e.attr("class").equals("pegi7") )  { this.pegi.add("pegi7"); continue; }
+            if ( e.attr("class").equals("pegi3") )  { this.pegi.add("pegi3"); continue; }
+            
+            if ( e.attr("class").equals("ageDescr BadLanguage") )   { this.pegi.add("bad-language"); continue; }
+            if ( e.attr("class").equals("ageDescr violence") )      { this.pegi.add("violence"); continue; }
+            if ( e.attr("class").equals("ageDescr online") )        { this.pegi.add("online"); continue; }
+            if ( e.attr("class").equals("ageDescr sex") )           { this.pegi.add("sex"); continue; }
+            if ( e.attr("class").equals("ageDescr fear") )          { this.pegi.add("fear"); continue; }
+            if ( e.attr("class").equals("ageDescr drugs") )         { this.pegi.add("drugs"); continue; }
+            if ( e.attr("class").equals("ageDescr discrimination") ){ this.pegi.add("discrimination"); continue; }
+            if ( e.attr("class").equals("ageDescr gambling") )      { this.pegi.add("gambling"); }
+        }
+        
+        /*
+        for ( Element p : addedDet.getElementsByTag("p") ) {
+            //System.out.println( p.toString() );
+            for ( TextNode t : p.textNodes() )
+                System.out.println( t.toString() );
+        }*/
+        
     }
     
     // do not implement setter
@@ -126,23 +163,28 @@ public class Game {
         str += "Platform: " + platform + "\n";
         str += "URL: " + url + "\n";
         
-        if ( newPrice > 0 )
+        if ( newPrice > 0 ) {
             str += "New Price: " + newPrice;
         
-        for ( double price : olderNewPrices ){
-            str += "\tOld New Price: " + price + "\n";
+            for ( double price : olderNewPrices ){
+                str += "\tOld New Price: " + price + "\n";
+            }
+
+            if ( olderNewPrices.size() < 1 ) { str += "\n"; }        
         }
         
-        if ( olderNewPrices.size() < 1 ) { str += "\n"; }
-        
-        if ( usedPrice > 0 )
+        if ( usedPrice > 0 ) {
             str += "Used Price: " + usedPrice;
         
-        for ( double price : olderUsedPrices ){
-            str += "\tOld Used Price: " + price + "\n";
+            for ( double price : olderUsedPrices ){
+                str += "\tOld Used Price: " + price + "\n";
+            }
+            
+            if ( olderUsedPrices.size() < 1 ) { str += "\n"; }
         }
         
-        str += "\n";
+        str += pegi.toString();
+        
         return str;
     }
     

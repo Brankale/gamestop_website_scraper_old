@@ -3,6 +3,7 @@ package gamestopapp;
 import java.util.Scanner;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import jdk.nashorn.internal.ir.ContinueNode;
 
 public class GamestopApp {
 
@@ -12,31 +13,30 @@ public class GamestopApp {
             long start = System.currentTimeMillis();
             
             Game g = new Game("https://www.gamestop.it/PS4/Games/110143/detroit-become-human");
-            System.out.println( g.toString() );
+            System.out.println( g.toString()+"\n" );
             
             
             g = new Game("https://www.gamestop.it/PS4/Games/101550/persona-5-steelbook-launch-edition");
-            System.out.println( g.toString() );
+            System.out.println( g.toString()+"\n" );
             
             // to implement "CONTENUTO DIGITALE"
             g = new Game("https://www.gamestop.it/XboxONE/Games/112463/forza-horizon-4-deluxe-edition");
-            System.out.println( g.toString() );
+            System.out.println( g.toString()+"\n" );
             
             g = new Game("https://www.gamestop.it/PS3/Games/31910/persona-4-arena-limited-edition");
-            System.out.println( g.toString() );
+            System.out.println( g.toString()+"\n" );
             
             g = new Game("https://www.gamestop.it/PS4/Games/99826");
-            System.out.println( g.toString() );
+            System.out.println( g.toString()+"\n" );
             
             g = new Game("https://www.gamestop.it/PS4/Games/34052/gta-v");
-            System.out.println( g.toString() );
+            System.out.println( g.toString()+"\n" );
             
             long finish = System.currentTimeMillis();
             
             System.out.println( (finish-start) + "ms" );
             
-            
-            
+            /*            
             Scanner in = new Scanner(System.in);
             while (true) {
                 System.out.print("\n\n\nInserisci nome gioco: ");
@@ -46,7 +46,7 @@ public class GamestopApp {
                     System.out.println(game);
                 }
             }
-            
+            */
             
         } catch (Exception ex) {
             Logger.getLogger(GamestopApp.class.getName()).log(Level.SEVERE, null, ex);
