@@ -1,10 +1,16 @@
 package gamestopapp;
 
-import java.awt.Image;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.Serializable;
 import java.io.UnsupportedEncodingException;
 import java.net.URL;
 import java.net.URLEncoder;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 import javax.imageio.ImageIO;
@@ -27,13 +33,13 @@ import org.jsoup.select.Elements;
     // the "BONUS" section should be added
 */
 
-public class Game {
+public class Game implements Serializable{
     
     private String title;
     private String url;
     private String publisher;
     private String platform;                // using String type, the app can memorize newer platform without making any changes to the app 
-    private Image cover;                    // not definitive (can be just a String with the URL / may break compatibility with Android)
+    private String cover;                    // not definitive (can be just a String with the URL / may break compatibility with Android)
     private double newPrice;
     private List<Double> olderNewPrices;    // in rare cases there are two older prices
     private double usedPrice;
@@ -59,7 +65,17 @@ public class Game {
     
     public Game (String url) throws IOException {
         
-        this();        
+        this();
+        
+        File directories = new File("userData");
+        if ( !directories.exists() ){
+            directories.mkdir();
+        }
+        
+        directories = new File("userData/covers");
+        if ( !directories.exists() ){
+            directories.mkdir();
+        }               
         
         Document html = Jsoup.connect(url).get();        // return the HTML page
         
@@ -78,8 +94,17 @@ public class Game {
         
         // in this section we can find: cover, gallery
         Element prodLeftBlock = prodMain.getElementsByClass("prodLeftBlock").get(0);
-        String imageURL = prodLeftBlock.getElementsByClass("prodImg max").get(0).attr("href");
-        this.cover = ImageIO.read( new URL(imageURL) );        
+        String imageURL = prodLeftBlock.getElementsByClass("prodImg max").get(0).attr("href");       
+        
+        this.cover = URLEncoder.encode(title+".jpg", "UTF-8");
+        
+        // download the cover image if not already saved
+        File imageOffline = new File("userData/covers/"+cover);
+        if( !imageOffline.exists() ){
+            try ( InputStream in = new URL(imageURL).openStream() ) {
+                Files.copy(in, Paths.get("userData/covers/"+cover));
+            }
+        }
         
         // in this section we can find: prices, pegi, id, genre, release date, availability, addToCard
         Element prodRightBlock = prodMain.getElementsByClass("prodRightBlock").get(0);        
@@ -159,6 +184,7 @@ public class Game {
         String str = "";
         
         str += "Title: " + title + "\n";
+        str += "Cover: " + cover + "\n";
         str += "Publisher: " + publisher + "\n";
         str += "Platform: " + platform + "\n";
         str += "URL: " + url + "\n";
@@ -195,9 +221,9 @@ public class Game {
     
     public static List<GamePreview> searchGame(String searchedGameName) throws UnsupportedEncodingException, IOException {
         
-        List<GamePreview> searchedGames = new ArrayList();
-        String site = "https://www.gamestop.it";
-        String path = "/SearchResult/QuickSearch";
+        List<GamePreview> searchedGames = new ArrayList();        
+        String site = "https://www.gamestop.it";        
+        String path = "/SearchResult/QuickSearch";        
         String query = "?q=" + URLEncoder.encode(searchedGameName, "UTF-8");
         String url = site + path + query;
         
