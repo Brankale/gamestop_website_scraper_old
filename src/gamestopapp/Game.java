@@ -1,8 +1,6 @@
 package gamestopapp;
 
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.Serializable;
@@ -13,11 +11,9 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
-import javax.imageio.ImageIO;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
-import org.jsoup.nodes.TextNode;
 import org.jsoup.select.Elements;
 
 /*
@@ -75,7 +71,7 @@ public class Game implements Serializable{
         directories = new File("userData/covers");
         if ( !directories.exists() ){
             directories.mkdir();
-        }               
+        }
         
         Document html = Jsoup.connect(url).get();        // return the HTML page
         
@@ -217,35 +213,6 @@ public class Game implements Serializable{
     public void update () {
         // update the game using the URL
         // to implement when all the attributes are defintive 
-    }    
-    
-    public static List<GamePreview> searchGame(String searchedGameName) throws UnsupportedEncodingException, IOException {
-        
-        List<GamePreview> searchedGames = new ArrayList();        
-        String site = "https://www.gamestop.it";        
-        String path = "/SearchResult/QuickSearch";        
-        String query = "?q=" + URLEncoder.encode(searchedGameName, "UTF-8");
-        String url = site + path + query;
-        
-        System.out.println(url);
-        
-        Document doc = Jsoup.connect(url).get();
-        Element body = doc.body();
-        
-        Elements gamesList = body.getElementsByClass("singleProduct");
-        
-        System.out.println(doc.getElementById("group11"));
-        
-        for(Element game : gamesList){
-            String gameImageUrl = game.getElementsByClass("prodImg").get(0).getElementsByTag("img").get(0).absUrl("data-llsrc");
-            String gameTitle = game.getElementsByTag("h3").get(0).text();
-            String gameUrl = game.getElementsByTag("h3").get(0).getElementsByTag("a").get(0).absUrl("href");
-            String gamePlatform = gameUrl.split("/")[3];
-            GamePreview previewGame = new GamePreview(gameTitle, gameUrl, gamePlatform, gameImageUrl );
-            searchedGames.add(previewGame);
-        }
-        
-        return searchedGames;
     }
     
     private double stringToPrice ( String price ) {
