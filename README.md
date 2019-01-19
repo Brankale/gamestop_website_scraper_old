@@ -1,10 +1,10 @@
 # GamestopApp
-GOAL: You can create a list of your favourite games and look at their prices
+GOAL: You can create a list of all your favourite games to keep an eye at their prices
 
-The app has been developed using Java, the Jsoup library and Netbeans IDE
-If you want to run the project:
-- download the ZIP file and import in the editor
-- link the Jsoup library to Netbeans (you can find it in the lib folder)
+Instructions for Windows & Linux
+- download & install Netbeans IDE 8.0.2 from https://netbeans.org/downloads/8.0.2/
+- Open the project : File > Import Project > From ZIP
+- Link the JSoup library in /lib folder : Tools > Libraries > New Library 
 
 The program now:
 - It doesn't have a GUI
