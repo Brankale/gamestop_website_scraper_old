@@ -1,42 +1,45 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package gamestopapp;
 
-import java.io.IOException;
+import java.util.Scanner;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-/**
- *
- * @author Utente
- */
 public class GamestopApp {
 
-    /**
-     * @param args the command line arguments
-     */
     public static void main(String[] args) {
         try {
-            Game g = new Game("https://www.gamestop.it/PS4/Games/110143/detroit-become-human");
-            System.out.println( g.toString() );
             
-            g = new Game("https://www.gamestop.it/PS4/Games/101550/persona-5-steelbook-launch-edition");
-            System.out.println( g.toString() );
+            Games wishlist = new Games();
             
-            // to implement "CONTENUTO DIGITALE"
-            g = new Game("https://www.gamestop.it/XboxONE/Games/112463/forza-horizon-4-deluxe-edition");
-            System.out.println( g.toString() );
+            wishlist.add( new Game("https://www.gamestop.it/PS4/Games/110143/detroit-become-human") );
+            wishlist.add( new Game("https://www.gamestop.it/PS4/Games/101550/persona-5-steelbook-launch-edition") );
+            wishlist.add( new Game("https://www.gamestop.it/XboxONE/Games/112463/forza-horizon-4-deluxe-edition") );
+            wishlist.add( new Game("https://www.gamestop.it/PS3/Games/31910/persona-4-arena-limited-edition") );
+            wishlist.add( new Game("https://www.gamestop.it/PS4/Games/99826") );
+            wishlist.add( new Game("https://www.gamestop.it/PS4/Games/34052/gta-v") );
             
-            g = new Game("https://www.gamestop.it/PS3/Games/31910/persona-4-arena-limited-edition");
-            System.out.println( g.toString() );
+            System.out.println( wishlist.toString() );            
+            wishlist.saveToFile();
             
+            Games temp = Games.readFromFile();
+            System.out.println( temp.toString() );
             
+
+            /*
             
+            // this is the searchBar
+            Scanner in = new Scanner(System.in);
+            while (true) {
+                System.out.print("Inserisci nome gioco: ");
+                String gameName = in.nextLine();
+                
+                System.out.println( GamePreview.toString( GamePreview.searchGame(gameName) ) );;
+                System.out.println("\n\n\n");
+            }
+
+            */
             
-        } catch (IOException ex) {
+        } catch (Exception ex) {
             Logger.getLogger(GamestopApp.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
