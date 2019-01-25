@@ -11,7 +11,9 @@ public class GamestopApp {
             
             Games wishlist = new Games();
             
-            wishlist.add( new Game("https://www.gamestop.it/PS4/Games/110143/detroit-become-human") );            
+            wishlist.add( new Game("https://www.gamestop.it/PS4/Games/110143/detroit-become-human") );
+            
+            
             wishlist.add( new Game("https://www.gamestop.it/PS4/Games/101550/persona-5-steelbook-launch-edition") );
             wishlist.add( new Game("https://www.gamestop.it/XboxONE/Games/112463/forza-horizon-4-deluxe-edition") );
             wishlist.add( new Game("https://www.gamestop.it/PS3/Games/31910/persona-4-arena-limited-edition") );
@@ -19,7 +21,8 @@ public class GamestopApp {
             wishlist.add( new Game("https://www.gamestop.it/PS4/Games/34052/gta-v") );
             
             
-            System.out.println( wishlist.toString() );            
+            
+            //System.out.println( wishlist.toString() );            
             //wishlist.saveToFile();
             
             //Games temp = Games.readFromFile();

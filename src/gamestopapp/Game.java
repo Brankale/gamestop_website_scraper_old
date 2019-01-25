@@ -14,6 +14,7 @@ import java.util.Objects;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
+import org.jsoup.select.Elements;
 
 /*
     private double vote;                    // not definitive (I find it useless, if you want a game the vote doesn't matter but sometime can help)
@@ -82,6 +83,11 @@ public class Game implements Serializable, Comparable<Game>{
             directories.mkdir();
         }
         
+        directories = new File("userData/gallery");
+        if ( !directories.exists() ){
+            directories.mkdir();
+        }
+        
         // 2. GET INFORMATION FROM THE WEBSITE
         
         Document html = Jsoup.connect(url).get();        // return the HTML page
@@ -99,7 +105,7 @@ public class Game implements Serializable, Comparable<Game>{
         this.platform = url.split("/")[3];
         this.url = url;
         
-        // in this section we can find: cover, gallery
+        // in this section we can find: cover, gallery?
         Element prodLeftBlock = prodMain.getElementsByClass("prodLeftBlock").get(0);
         String imageURL = prodLeftBlock.getElementsByClass("prodImg max").get(0).attr("href");
         
@@ -228,6 +234,44 @@ public class Game implements Serializable, Comparable<Game>{
                     this.releaseDate = e.child(1).text();
                 }                
             }                      
+        }
+        
+        // GALLERY IMPLEMENTATION
+        
+        
+        Elements mediaIn = prodMain.getElementsByClass("mediaIn");
+        
+        // check if there are some medias
+        if ( !mediaIn.isEmpty() )
+        {
+            Elements mediaVideo = prodMain.getElementsByClass("mediaVideo");
+            
+            if ( !mediaVideo.isEmpty() ){                
+                // to take the video you must use Javascript
+                // it's possible to pick the URL but just from the browser
+            }            
+            
+            Elements mediaImages = prodMain.getElementsByClass("mediaImages");
+            if ( !mediaImages.isEmpty() )
+            {                
+                Elements imagesURLs = mediaImages.get(0).getElementsByTag("a");
+                for ( Element e : imagesURLs )
+                {                    
+                    imageURL = e.attr("href");
+                    System.out.println( imageURL );
+                    
+                     directories = new File("userData/gallery/"+imageURL.split("/")[5]);
+                    if ( !directories.exists() ){
+                        directories.mkdir();
+                    }
+                    
+                    try ( InputStream in = new URL(imageURL).openStream() ) {
+                        
+                        
+                        Files.copy(in, Paths.get("userData/gallery/" +imageURL.split("/")[5] +"/"+ imageURL.split("/")[6] ));
+                    } catch (Exception ex){}
+                }
+            }
         }
         
     }
