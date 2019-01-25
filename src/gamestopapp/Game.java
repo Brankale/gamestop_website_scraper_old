@@ -4,32 +4,31 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.Serializable;
-import java.io.UnsupportedEncodingException;
 import java.net.URL;
 import java.net.URLEncoder;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
-import org.jsoup.select.Elements;
 
 /*
     private double vote;                    // not definitive (I find it useless, if you want a game the vote doesn't matter but sometime can help)
     private int usersNumber;                // not definitive (I find it useless)
     private List<Image> gallery;            // not definitive (may include photos and videos) (can be just a List<String> that contains the URLs)
-    private String idNew;                   // not definitive (can be a number)
-    private String idUsed;                  // not definitive (can be a number)
-    private String genre;                   // not definitive (enum would be perfect but a game can have multiple genre)
+    private int new_ID;
+    private int digital_ID;
+    private int used_ID;
     private String description;
     private String addToCart;
     private boolean storeAvailability;      // to discuss
     // the "BONUS" section should be added
 */
 
-public class Game implements Serializable{
+public class Game implements Serializable, Comparable<Game>{
     
     private String title;
     private String url;
@@ -41,7 +40,9 @@ public class Game implements Serializable{
     private double usedPrice;
     private List<Double> olderUsedPrices;   // in rare cases there are two older prices
     private List<String> pegi;
-    //private List<String> genre;
+    private List<String> genres;
+    private String officialSite;
+    private short players;
     private String releaseDate;
 
     private Game() {
@@ -55,23 +56,33 @@ public class Game implements Serializable{
         this.usedPrice = -1;
         this.olderUsedPrices = new ArrayList<>();
         this.pegi = new ArrayList<>();
-        //this.genre = new ArrayList<>();
+        this.genres = new ArrayList<>();
+        this.officialSite = null;
+        this.players = -1;
         this.releaseDate = null;
     }
     
-    public Game (String url) throws IOException {
+    public Game (String url) throws IOException {        
         
-        this();
+        this();     // init attributes
         
+        // 1. CREATION OF CACHES FOLDERS
+        
+        // create userData folder if doesn't exist
+        // userData folder contains caches
         File directories = new File("userData");
         if ( !directories.exists() ){
             directories.mkdir();
         }
         
+        // create covers folder if doesn't exist
+        // covers folder contains games' images caches
         directories = new File("userData/covers");
         if ( !directories.exists() ){
             directories.mkdir();
         }
+        
+        // 2. GET INFORMATION FROM THE WEBSITE
         
         Document html = Jsoup.connect(url).get();        // return the HTML page
         
@@ -136,15 +147,16 @@ public class Game implements Serializable{
         }
         
         
-        // in this section we can find pegi, id, genre, releaseDate
-        Element addedDet = prodRightBlock.getElementById("addedDet");       
+        // "addedDet" section contains: pegi, id, genre, releaseDate
+        Element addedDet = prodRightBlock.getElementById("addedDet");
         
-        // cycle is totally useless, is just for performance        
+        // cycle is totally useless, is just for performance  
         Element ageBlock = addedDet.getElementsByClass("ageBlock").get(0);
         
-        // to replaced with getElementByClass StartingWith
+        // Init PEGI
+        // to replace with getElementByClass StartingWith
         for ( Element e : ageBlock.getAllElements() )
-        {
+        {            
             if ( e.attr("class").equals("pegi18") ) { this.pegi.add("pegi18"); continue; }
             if ( e.attr("class").equals("pegi16") ) { this.pegi.add("pegi16"); continue; }
             if ( e.attr("class").equals("pegi12") ) { this.pegi.add("pegi12"); continue; }
@@ -159,14 +171,60 @@ public class Game implements Serializable{
             if ( e.attr("class").equals("ageDescr drugs") )         { this.pegi.add("drugs"); continue; }
             if ( e.attr("class").equals("ageDescr discrimination") ){ this.pegi.add("discrimination"); continue; }
             if ( e.attr("class").equals("ageDescr gambling") )      { this.pegi.add("gambling"); }
-        }
+        }        
         
-        /*
-        for ( Element p : addedDet.getElementsByTag("p") ) {
-            //System.out.println( p.toString() );
+        // Search: Codice Articolo / Genere / Sito ufficiale / Giocatori / Rilascio
+        for ( Element e : addedDet.getElementsByTag("p") )
+        {            
+            // USE THIS FOR TESTS
+            /*
+            System.out.println( "\n" + e.toString() );
+            System.out.println( e.childNodeSize() + "\n");
+            if ( e.childNodeSize() > 1 )
+                System.out.println( "#" + e.child(0).text() );
+            */
+            
+            /*            
             for ( TextNode t : p.textNodes() )
                 System.out.println( t.toString() );
-        }*/
+            */  
+            
+            // important check to avoid IndexOutOfBound Exception
+            if ( e.childNodeSize() > 1 )
+            {
+                // Set item ID
+                if ( e.child(0).text().equals("Codice articolo") ) {
+                    // It's not so useful
+                }
+                
+                // set genre
+                if ( e.child(0).text().equals("Genere") ) {
+                    // System.out.println( e.child(1).text() );                    
+                    String strGenres = e.child(1).text();  // return example: Action/Adventure
+                    for ( String genre : strGenres.split("/") )
+                        genres.add(genre);
+                }
+                
+                // set official site
+                if ( e.child(0).text().equals("Sito Ufficiale") ) {
+                    // System.out.println( e.child(1) );
+                    // System.out.println( e.child(1).getElementsByTag("a").attr("href") );
+                    this.officialSite = e.child(1).getElementsByTag("a").attr("href");
+                }
+                
+                // set the number of players
+                if ( e.child(0).text().equals("Giocatori") ) {
+                    // System.out.println( e.child(1).text() );
+                    this.players = Short.parseShort( e.child(1).text() );
+                }
+                
+                // set the release date
+                if ( e.child(0).text().equals("Rilascio") ) {
+                    //System.out.println( e.child(1).text() );
+                    this.releaseDate = e.child(1).text();                    
+                }                
+            }                      
+        }
         
     }
     
@@ -174,7 +232,7 @@ public class Game implements Serializable{
     
     // implements getter when all the attributes are defintive
 
-    // for now use toString just for tests
+    // toString method at the moment is used just for tests
     @Override
     public String toString() {
         String str = "";
@@ -205,7 +263,16 @@ public class Game implements Serializable{
             if ( olderUsedPrices.size() < 1 ) { str += "\n"; }
         }
         
-        str += pegi.toString();
+        str += "PEGI: " + pegi.toString() + "\n";
+        str += "Genres:" + genres.toString() + "\n";        
+        
+        if ( this.officialSite != null )
+            str += "Official Site: " + officialSite + "\n";
+        
+        if ( this.players > 0 )
+            str += "Number of Players: " + players + "\n";
+        
+        str += "Release Date: " + releaseDate + "\n";
         
         return str;
     }
@@ -215,11 +282,42 @@ public class Game implements Serializable{
         // to implement when all the attributes are defintive 
     }
     
-    private double stringToPrice ( String price ) {
-        price = price.substring( price.indexOf(' ') );
+    private double stringToPrice ( String price )
+    {        
+        //System.out.println( "#" + price + "#" );        
         price = price.replace(',', '.');
+        price = price.replace("€", "");
+        price = price.replace("CHF", "");
+        price = price.trim();
+        //System.out.println( "#" + price + "#" );
+        
         return Double.parseDouble(price);
     }
-    
+
+    @Override
+    public int hashCode() {
+        int hash = 7;
+        hash = 29 * hash + Objects.hashCode(this.url);
+        return hash;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) { return true; }
+        if (obj == null) { return false; }
+        if (getClass() != obj.getClass()) { return false; }
+        final Game other = (Game) obj;
+        
+        // NOTE: these two URLs are the same
+        // https://www.gamestop.it/PS3/Games/31910/persona-4-arena-limited-edition
+        // https://www.gamestop.it/PS3/Games/31910
+        
+        return Objects.equals(this.url, other.url);     // See the problem above
+    }
+
+    @Override
+    public int compareTo(Game game) {
+        return this.title.compareTo(game.title);    // game.title -> game.getTitle();
+    }
     
 }
