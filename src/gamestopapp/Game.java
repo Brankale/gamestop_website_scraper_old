@@ -195,6 +195,7 @@ public class Game implements Serializable, Comparable<Game>{
                 // Set item ID
                 if ( e.child(0).text().equals("Codice articolo") ) {
                     // It's not so useful
+                    continue;
                 }
                 
                 // set genre
