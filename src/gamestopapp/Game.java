@@ -30,20 +30,20 @@ import org.jsoup.nodes.Element;
 
 public class Game implements Serializable, Comparable<Game>{
     
-    private String title;
-    private String url;
-    private String publisher;
-    private String platform;                // using String type, the app can memorize newer platform without making any changes to the app 
-    private String cover;                    // not definitive (can be just a String with the URL / may break compatibility with Android)
-    private double newPrice;
-    private List<Double> olderNewPrices;    // in rare cases there are two older prices
-    private double usedPrice;
-    private List<Double> olderUsedPrices;   // in rare cases there are two older prices
-    private List<String> pegi;
-    private List<String> genres;
-    private String officialSite;
-    private short players;
-    private String releaseDate;
+    private String title;                   // it contains the title of the game
+    private String url;                     // it contains the URL of the Gamestop's page
+    private String publisher;               // it contains the game's publisher name
+    private String platform;                // it contains the console where the game run (can be also a Gadget)
+    private String cover;                   // it contains the title formatted with UTF-8. It's used to pick the image from the folder "usedData/covers"
+    private double newPrice;                // it's the price for a new game
+    private List<Double> olderNewPrices;    // it's the old price for a new game (in rare cases there are two or more older prices)
+    private double usedPrice;               // it's the price for a used game
+    private List<Double> olderUsedPrices;   // it's the old price for a used game (in rare cases there are two or more older prices)
+    private List<String> pegi;              // it's a list containing all the types of PEGI a Game has
+    private List<String> genres;            // it's a list containing all the genres a Game has
+    private String officialSite;            // it contains the URL of the official site of the Game
+    private short players;                  // it contains the number of players that can play the game at the same time
+    private String releaseDate;             // it contains the release date of the game
 
     private Game() {
         this.title = null;
@@ -101,7 +101,7 @@ public class Game implements Serializable, Comparable<Game>{
         
         // in this section we can find: cover, gallery
         Element prodLeftBlock = prodMain.getElementsByClass("prodLeftBlock").get(0);
-        String imageURL = prodLeftBlock.getElementsByClass("prodImg max").get(0).attr("href");       
+        String imageURL = prodLeftBlock.getElementsByClass("prodImg max").get(0).attr("href");
         
         this.cover = URLEncoder.encode(title+".jpg", "UTF-8");
         
@@ -203,6 +203,7 @@ public class Game implements Serializable, Comparable<Game>{
                     String strGenres = e.child(1).text();  // return example: Action/Adventure
                     for ( String genre : strGenres.split("/") )
                         genres.add(genre);
+                    continue;
                 }
                 
                 // set official site
@@ -210,18 +211,20 @@ public class Game implements Serializable, Comparable<Game>{
                     // System.out.println( e.child(1) );
                     // System.out.println( e.child(1).getElementsByTag("a").attr("href") );
                     this.officialSite = e.child(1).getElementsByTag("a").attr("href");
+                    continue;
                 }
                 
                 // set the number of players
                 if ( e.child(0).text().equals("Giocatori") ) {
                     // System.out.println( e.child(1).text() );
                     this.players = Short.parseShort( e.child(1).text() );
+                    continue;
                 }
                 
                 // set the release date
                 if ( e.child(0).text().equals("Rilascio") ) {
                     //System.out.println( e.child(1).text() );
-                    this.releaseDate = e.child(1).text();                    
+                    this.releaseDate = e.child(1).text();
                 }                
             }                      
         }
@@ -230,7 +233,7 @@ public class Game implements Serializable, Comparable<Game>{
     
     // do not implement setter
     
-    // implements getter when all the attributes are defintive
+    // implements getter when all the attributes are definitive
 
     // toString method at the moment is used just for tests
     @Override
@@ -276,6 +279,32 @@ public class Game implements Serializable, Comparable<Game>{
         
         return str;
     }
+        
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) { return true; }
+        if (obj == null) { return false; }
+        if (getClass() != obj.getClass()) { return false; }
+        final Game other = (Game) obj;
+        
+        // NOTE: these two URLs are the same
+        // https://www.gamestop.it/PS3/Games/31910/persona-4-arena-limited-edition
+        // https://www.gamestop.it/PS3/Games/31910        
+        
+        return Objects.equals(this.url, other.url);     // See the problem above
+    }
+    
+    @Override
+    public int hashCode() {
+        int hash = 7;
+        hash = 29 * hash + Objects.hashCode(this.url);
+        return hash;
+    }
+
+    @Override
+    public int compareTo(Game game) {
+        return this.title.compareTo(game.title);    // game.title -> game.getTitle();
+    }
     
     public void update () {
         // update the game using the URL
@@ -292,32 +321,6 @@ public class Game implements Serializable, Comparable<Game>{
         //System.out.println( "#" + price + "#" );
         
         return Double.parseDouble(price);
-    }
-
-    @Override
-    public int hashCode() {
-        int hash = 7;
-        hash = 29 * hash + Objects.hashCode(this.url);
-        return hash;
-    }
-
-    @Override
-    public boolean equals(Object obj) {
-        if (this == obj) { return true; }
-        if (obj == null) { return false; }
-        if (getClass() != obj.getClass()) { return false; }
-        final Game other = (Game) obj;
-        
-        // NOTE: these two URLs are the same
-        // https://www.gamestop.it/PS3/Games/31910/persona-4-arena-limited-edition
-        // https://www.gamestop.it/PS3/Games/31910
-        
-        return Objects.equals(this.url, other.url);     // See the problem above
-    }
-
-    @Override
-    public int compareTo(Game game) {
-        return this.title.compareTo(game.title);    // game.title -> game.getTitle();
     }
     
 }
