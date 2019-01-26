@@ -73,6 +73,7 @@ public class Game implements Serializable, Comparable<Game>{
         File directories = new File("userData");
         if ( !directories.exists() ){
             directories.mkdir();
+            Log.info("Game", "userData folder created");
         }
         
         // create covers folder if doesn't exist
@@ -80,11 +81,13 @@ public class Game implements Serializable, Comparable<Game>{
         directories = new File("userData/covers");
         if ( !directories.exists() ){
             directories.mkdir();
+            Log.info("Game", "userData/covers folder created");
         }
         
         // 2. GET INFORMATION FROM THE WEBSITE
         
         Document html = Jsoup.connect(url).get();        // return the HTML page
+        Log.info("Game", "downloaded HTML \t\t" + url);
         
         Element body = html.body();
         
@@ -110,7 +113,10 @@ public class Game implements Serializable, Comparable<Game>{
         if( !imageOffline.exists() ){
             try ( InputStream in = new URL(imageURL).openStream() ) {
                 Files.copy(in, Paths.get("userData/covers/"+cover));
+                Log.info("Game", "cover downloaded \t" + imageURL);
             }
+        } else {
+            Log.info("Game", "cover already exist \t" + imageURL);
         }
         
         // in this section we can find: prices, pegi, id, genre, release date, availability, addToCard

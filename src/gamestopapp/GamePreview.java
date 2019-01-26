@@ -67,6 +67,7 @@ public class GamePreview {
         String url = site + path + query;
         
         Document doc = Jsoup.connect(url).get();
+        Log.info("GamePreview", "search completed");
         Element body = doc.body();
         
         Elements gamesList = body.getElementsByClass("singleProduct");

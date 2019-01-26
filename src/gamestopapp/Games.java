@@ -21,7 +21,7 @@ public class Games extends ArrayList<Game> {
         return str;
     }
     
-    public void saveToFile() throws IOException
+    public void exportToBinary() throws IOException
     {
         ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream("userData/wishlist.dat"));
         
@@ -29,10 +29,11 @@ public class Games extends ArrayList<Game> {
             oos.writeObject( this.get(game) );
         }
         
+        Log.info("Games", "exported to binary");
         oos.close();
     }
     
-    public static Games readFromFile() throws FileNotFoundException, IOException, ClassNotFoundException
+    public static Games importFromBinary() throws FileNotFoundException, IOException, ClassNotFoundException
     {        
         ObjectInputStream ois = new ObjectInputStream(new FileInputStream("userData/wishlist.dat"));
         
@@ -48,6 +49,7 @@ public class Games extends ArrayList<Game> {
             }
         }
         
+        Log.info("Games", "imported from binary");
         return wishlist;
     }
     
