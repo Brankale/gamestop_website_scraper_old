@@ -8,8 +8,26 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.util.ArrayList;
+import java.util.Collections;
 
 public class Games extends ArrayList<Game> {
+    
+    @Override
+    public boolean add ( Game game ) {
+        
+        for ( Game g : this ){
+            if ( g.equals(game) ){
+                // it's a warning because equals() requires a revision
+                Log.warning("Games", "the game already exist\t" + game.getTitle() );
+                return false;
+            }
+        }
+        
+        super.add(game);
+        Log.info("Games", "game added \t\t" + game.getTitle() );
+        
+        return true;
+    }
     
     @Override
     public String toString ()
@@ -51,6 +69,26 @@ public class Games extends ArrayList<Game> {
         
         Log.info("Games", "imported from binary");
         return wishlist;
+    }
+    
+    public void sortbyName () {
+        Collections.sort( this );
+    }
+    
+    public void sortByPlatform () {
+        Collections.sort( this, new GamePlatformComparator() );
+    }
+    
+    public void sortByNewPrice () {
+        Collections.sort( this, new GameNewPriceComparator() );
+    }
+    
+    public void sortByUsedPrice () {
+        Collections.sort( this, new GameUsedPriceComparator() );
+    }
+    
+    public void sortByReleaseDate () {
+        Collections.sort( this, new GameReleaseDateComparator() );
     }
     
 }

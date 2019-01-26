@@ -87,7 +87,7 @@ public class Game implements Serializable, Comparable<Game>{
         // 2. GET INFORMATION FROM THE WEBSITE
         
         Document html = Jsoup.connect(url).get();        // return the HTML page
-        Log.info("Game", "downloaded HTML \t\t" + url);
+        Log.info("Game", "downloaded HTML \t" + url);
         
         Element body = html.body();
         
@@ -241,6 +241,28 @@ public class Game implements Serializable, Comparable<Game>{
     // do not implement setter
     
     // implements getter when all the attributes are definitive
+
+    public String getPlatform() {
+        return platform;
+    }
+
+    public double getNewPrice() {
+        return newPrice;
+    }
+
+    public double getUsedPrice() {
+        return usedPrice;
+    }
+
+    public String getReleaseDate() {
+        return releaseDate;
+    }
+
+    public String getTitle() {
+        return title;
+    }
+    
+    
 
     // toString method at the moment is used just for tests
     @Override

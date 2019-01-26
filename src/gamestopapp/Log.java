@@ -30,22 +30,22 @@ public class Log {
 
     //info
     public static void info(String className, String message) {
-        System.out.println(GREEN + className + " : " + message + RESET);
+        System.out.println(GREEN + className + ":\t" + message + RESET);
     }
 
     //error
     public static void error(String className, String message) {
-        System.out.println(RED + className + " : " + message + RESET);
+        System.out.println(RED + className + ":\t" + message + RESET);
     }
 
     //debug
     public static void debug(String className, String message) {
-        System.out.println( CYAN + className + " : " + message + RESET);
+        System.out.println( CYAN + className + ":\t" + message + RESET);
     }
 
     //warning
     public static void warning(String className, String message) {
-        System.out.println( PURPLE_BOLD + className + " : " + message + RESET);
+        System.out.println( PURPLE_BOLD + className + ":\t" + message + RESET);
     }
     
 }
