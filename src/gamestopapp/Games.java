@@ -8,6 +8,7 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.util.ArrayList;
+import java.util.Collections;
 
 public class Games extends ArrayList<Game> {
     
@@ -49,6 +50,22 @@ public class Games extends ArrayList<Game> {
         }
         
         return wishlist;
+    }
+    
+    public void sortByNewPrice () {
+        Collections.sort( this, new GameNewPriceComparator() );
+    }
+    
+    public void sortByUsedPrice () {
+        Collections.sort( this, new GameUsedPriceComparator());
+    }
+    
+    public void sortByPlatform () {
+        Collections.sort( this, new GamePlatformComparator());
+    }
+    
+    public void sortByReleaseDate () {
+        Collections.sort( this, new GameReleaseDateComparator());
     }
     
 }

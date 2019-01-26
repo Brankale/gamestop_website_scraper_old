@@ -9,7 +9,14 @@ public class GamestopApp {
     public static void main(String[] args) {
         try {
             
-            Games wishlist = new Games();
+            
+            //Games wishlist = new Games();
+            
+            Games temp = Games.readFromFile();
+            System.out.println( temp.toString() );
+           
+            
+            /*
             
             wishlist.add( new Game("https://www.gamestop.it/PS4/Games/110143/detroit-become-human") );
             
@@ -20,7 +27,7 @@ public class GamestopApp {
             wishlist.add( new Game("https://www.gamestop.it/PS4/Games/99826") );
             wishlist.add( new Game("https://www.gamestop.it/PS4/Games/34052/gta-v") );
             
-            
+            */
             
             //System.out.println( wishlist.toString() );            
             //wishlist.saveToFile();

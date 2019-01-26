@@ -231,7 +231,11 @@ public class Game implements Serializable, Comparable<Game>{
                 // set the release date
                 if ( e.child(0).text().equals("Rilascio") ) {
                     //System.out.println( e.child(1).text() );
-                    this.releaseDate = e.child(1).text();
+                    
+                    String date = e.child(1).text();
+                    date = date.replace(".", "/");
+                    
+                    this.releaseDate = date;
                 }                
             }                      
         }
@@ -279,6 +283,29 @@ public class Game implements Serializable, Comparable<Game>{
     // do not implement setter
     
     // implements getter when all the attributes are definitive
+
+    public String getPlatform() {
+        return platform;
+    }
+
+    public double getNewPrice() {
+        return newPrice;
+    }
+
+    public double getUsedPrice() {
+        return usedPrice;
+    }
+
+    public String getReleaseDate() {
+        return releaseDate;
+    }
+
+    public String getTitle() {
+        return title;
+    }
+    
+    
+    
 
     // toString method at the moment is used just for tests
     @Override
