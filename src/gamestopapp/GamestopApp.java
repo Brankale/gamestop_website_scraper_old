@@ -20,9 +20,9 @@ public class GamestopApp {
             
             
             System.out.println( wishlist.toString() );            
-            //wishlist.saveToFile();
+            wishlist.exportToBinary();
             
-            //Games temp = Games.readFromFile();
+            Games temp = Games.importFromBinary();
             //System.out.println( temp.toString() );
             
 
