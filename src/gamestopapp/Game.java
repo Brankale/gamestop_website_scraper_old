@@ -14,14 +14,13 @@ import java.util.Objects;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
+import org.jsoup.nodes.Node;
 
 /*
     private double vote;                    // not definitive (I find it useless, if you want a game the vote doesn't matter but sometime can help)
     private int usersNumber;                // not definitive (I find it useless)
     private List<Image> gallery;            // not definitive (may include photos and videos) (can be just a List<String> that contains the URLs)
-    private int new_ID;
-    private int digital_ID;
-    private int used_ID;
+    
     private String description;
     private String addToCart;
     private boolean storeAvailability;      // to discuss
@@ -40,6 +39,9 @@ public class Game implements Serializable, Comparable<Game>{
     private double usedPrice;               // it's the price for a used game
     private List<Double> olderUsedPrices;   // it's the old price for a used game (in rare cases there are two or more older prices)
     private List<String> pegi;              // it's a list containing all the types of PEGI a Game has
+    private String new_ID;
+    private String digital_ID;
+    private String used_ID;
     private List<String> genres;            // it's a list containing all the genres a Game has
     private String officialSite;            // it contains the URL of the official site of the Game
     private short players;                  // it contains the number of players that can play the game at the same time
@@ -56,6 +58,9 @@ public class Game implements Serializable, Comparable<Game>{
         this.usedPrice = -1;
         this.olderUsedPrices = new ArrayList<>();
         this.pegi = new ArrayList<>();
+        this.new_ID = null;
+        this.digital_ID = null;
+        this.used_ID = null;
         this.genres = new ArrayList<>();
         this.officialSite = null;
         this.players = -1;
@@ -199,8 +204,37 @@ public class Game implements Serializable, Comparable<Game>{
             if ( e.childNodeSize() > 1 )
             {
                 // Set item ID
-                if ( e.child(0).text().equals("Codice articolo") ) {
-                    // It's not so useful
+                if ( e.child(0).text().equals("Codice articolo") )
+                {                    
+                    for ( Node n : e.childNodes() )
+                    {                        
+                        String id = n.toString();
+                        
+                        id = id.replace("<span>", "");
+                        id = id.replace("</span>", "");
+                        id = id.replace("<em>", "");
+                        id = id.replace("</em>", "");
+                        id = id.replace(" ", "");
+
+                        if ( id.split(":")[0].equals("Nuovo") ){
+                            this.new_ID = id.split(":")[1];
+                            //System.out.println( "new ID : " + new_ID );
+                            continue;
+                        }
+                        
+                        if ( id.split(":")[0].equals("Usato") ){
+                            this.used_ID = id.split(":")[1];
+                            //System.out.println( "used ID : " + used_ID );
+                            continue;
+                        }
+                        
+                        // NB: "ContenutoDigitale" should have a space between the two words, but before
+                        // I removed the spaces, so it must be written like this
+                        if ( id.split(":")[0].equals("ContenutoDigitale") ){
+                            this.digital_ID = id.split(":")[1];
+                            //System.out.println( "digital ID : " + digital_ID );
+                        }                        
+                    }
                     continue;
                 }
                 
@@ -232,6 +266,7 @@ public class Game implements Serializable, Comparable<Game>{
                 if ( e.child(0).text().equals("Rilascio") ) {
                     //System.out.println( e.child(1).text() );
                     this.releaseDate = e.child(1).text();
+                    this.releaseDate = releaseDate.replace(".","/");
                 }                
             }                      
         }
@@ -310,7 +345,8 @@ public class Game implements Serializable, Comparable<Game>{
     }
         
     @Override
-    public boolean equals(Object obj) {
+    public boolean equals(Object obj)
+    {
         if (this == obj) { return true; }
         if (obj == null) { return false; }
         if (getClass() != obj.getClass()) { return false; }
