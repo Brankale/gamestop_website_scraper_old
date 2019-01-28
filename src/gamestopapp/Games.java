@@ -18,13 +18,13 @@ public class Games extends ArrayList<Game> {
         for ( Game g : this ){
             if ( g.equals(game) ){
                 // it's a warning because equals() requires a revision
-                Log.warning("Games", "the game already exist\t" + game.getTitle() );
+                Log.warning("Games", "the game already exist \t\t" + game.getTitle() );
                 return false;
             }
         }
         
         super.add(game);
-        Log.info("Games", "game added \t\t" + game.getTitle() );
+        Log.info("Games", "game added \t\t\t" + game.getTitle() );
         
         return true;
     }
