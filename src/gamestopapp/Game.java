@@ -15,6 +15,7 @@ import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.nodes.Node;
+import org.jsoup.select.Elements;
 
 /*
     private double vote;                    // not definitive (I find it useless, if you want a game the vote doesn't matter but sometime can help)
@@ -33,7 +34,6 @@ public class Game implements Serializable, Comparable<Game>{
     private String url;                     // it contains the URL of the Gamestop's page
     private String publisher;               // it contains the game's publisher name
     private String platform;                // it contains the console where the game run (can be also a Gadget)
-    private String cover;                   // it contains the title formatted with UTF-8. It's used to pick the image from the folder "usedData/covers"
     private double newPrice;                // it's the price for a new game
     private List<Double> olderNewPrices;    // it's the old price for a new game (in rare cases there are two or more older prices)
     private double usedPrice;               // it's the price for a used game
@@ -52,7 +52,6 @@ public class Game implements Serializable, Comparable<Game>{
         this.url = null;
         this.publisher = null;
         this.platform = null;
-        this.cover = null;
         this.newPrice = -1;
         this.olderNewPrices = new ArrayList<>();
         this.usedPrice = -1;
@@ -69,30 +68,12 @@ public class Game implements Serializable, Comparable<Game>{
     
     public Game (String url) throws IOException {        
         
-        this();     // init attributes
+        this();     // init attributes   
         
-        // 1. CREATION OF CACHES FOLDERS
-        
-        // create userData folder if doesn't exist
-        // userData folder contains caches
-        File directories = new File("userData");
-        if ( !directories.exists() ){
-            directories.mkdir();
-            Log.info("Game", "userData folder created");
-        }
-        
-        // create covers folder if doesn't exist
-        // covers folder contains games' images caches
-        directories = new File("userData/covers");
-        if ( !directories.exists() ){
-            directories.mkdir();
-            Log.info("Game", "userData/covers folder created");
-        }
-        
-        // 2. GET INFORMATION FROM THE WEBSITE
+        // GET INFORMATION FROM THE WEBSITE
         
         Document html = Jsoup.connect(url).get();        // return the HTML page
-        Log.info("Game", "downloaded HTML \t" + url);
+        Log.info("Game", "downloaded HTML \t\t" + url);
         
         Element body = html.body();
         
@@ -100,29 +81,12 @@ public class Game implements Serializable, Comparable<Game>{
         
         Element mainInfo = prodMain.getElementsByClass("mainInfo").get(0);
         
-        // in this section we can find: title, publisher, platform, vote, voting users
+        // in "mainInfo" section we can find: title, publisher, platform, vote, voting users
         Element prodTitle = mainInfo.getElementsByClass("prodTitle").get(0);        
         this.title = prodTitle.getElementsByTag("h1").text();
         this.publisher = prodTitle.getElementsByTag("strong").text();
         this.platform = url.split("/")[3];
-        this.url = url;
-        
-        // in this section we can find: cover, gallery
-        Element prodLeftBlock = prodMain.getElementsByClass("prodLeftBlock").get(0);
-        String imageURL = prodLeftBlock.getElementsByClass("prodImg max").get(0).attr("href");
-        
-        this.cover = URLEncoder.encode(title+".jpg", "UTF-8");
-        
-        // download the cover image if not already saved
-        File imageOffline = new File("userData/covers/"+cover);
-        if( !imageOffline.exists() ){
-            try ( InputStream in = new URL(imageURL).openStream() ) {
-                Files.copy(in, Paths.get("userData/covers/"+cover));
-                Log.info("Game", "cover downloaded \t" + imageURL);
-            }
-        } else {
-            Log.info("Game", "cover already exist \t" + imageURL);
-        }
+        this.url = url;       
         
         // in this section we can find: prices, pegi, id, genre, release date, availability, addToCard
         Element prodRightBlock = prodMain.getElementsByClass("prodRightBlock").get(0);        
@@ -271,6 +235,107 @@ public class Game implements Serializable, Comparable<Game>{
             }                      
         }
         
+        
+        
+        // CREATION OF CACHES FOLDERS
+        
+        /*
+        
+        CACHES FOLDER STRUCTURE
+        
+        userData/
+            - file.tmp
+            - GameID/
+                - cover.jpg
+                - gallery/
+                    - imageXX.jpg
+        */
+        
+        // create userData folder if doesn't exist
+        // userData folder contains caches
+        File directories = new File("userData");
+        if ( !directories.exists() ){
+            directories.mkdir();
+            Log.info("Game", "userData folder created");
+        }
+        
+        // creation of GameID folder
+        String path = null;
+        
+        if ( new_ID != null )    { path = "userData/" + new_ID + "/"; }
+        if ( digital_ID != null ){ path = "userData/" + digital_ID + "/"; }
+        
+        directories = new File(path);
+        
+        if ( !directories.exists() ){
+            directories.mkdir();
+            Log.info("Game", "folder created \t\t\t" + path);
+        } else {
+            Log.warning("Game", "folder already exist \t\t" + path);
+        }
+        
+        
+        // in "prodLeftBlock" section we can find the cover
+        Element prodLeftBlock = prodMain.getElementsByClass("prodLeftBlock").get(0);
+        String imageURL = prodLeftBlock.getElementsByClass("prodImg max").get(0).attr("href");
+        
+        // download the cover image if not already saved
+        File imageOffline = new File(path+"cover.jpg");
+        if( !imageOffline.exists() ){
+            try ( InputStream in = new URL(imageURL).openStream() ) {
+                Files.copy(in, Paths.get(path+"cover.jpg"));
+                Log.info("Game", "cover downloaded \t\t" + imageURL);
+            } catch (IOException e) {
+                Log.error("Game", "cannot download the cover \t" + imageURL);
+            }
+        } else {
+            Log.info("Game", "cover already exist \t\t" + imageURL);
+        }
+        
+        // in "mediaIn" section we can find the gallery
+        Elements mediaIn = prodMain.getElementsByClass("mediaIn");
+
+        // check if there are some medias
+        if ( !mediaIn.isEmpty() )
+        {
+            Elements mediaVideo = prodMain.getElementsByClass("mediaVideo");
+
+            if ( !mediaVideo.isEmpty() ){                
+                // to take the video you must use Javascript
+                // it's possible to pick the URL but just from the browser
+            }            
+
+            Elements mediaImages = prodMain.getElementsByClass("mediaImages");
+            if ( !mediaImages.isEmpty() )
+            {
+                // Create the folder if there are media files
+                path = path + "gallery/";
+                directories = new File(path);
+                if ( !directories.exists() ){
+                    directories.mkdir();
+                }
+                
+                Elements imagesURLs = mediaImages.get(0).getElementsByTag("a");
+                for ( Element e : imagesURLs )
+                {                    
+                    imageURL = e.attr("href");
+                    String imageURI = path + imageURL.split("/")[6];
+                    imageOffline = new File(imageURI);
+                    
+                    if ( !imageOffline.exists() ){
+                        try ( InputStream in = new URL(imageURL).openStream() ) {
+                            Files.copy(in, Paths.get(imageURI));
+                            Log.info("Game", "downloaded the image \t\t" + imageURL.split("/")[6]);
+                        } catch (Exception ex) {
+                            Log.error("Game", "cannot download the image \t" + imageURL.split("/")[6]);
+                        }
+                    } else {
+                        Log.warning("Game", "the image already exist \t" + imageURL.split("/")[6]);
+                    }
+                }
+            }
+        }
+        
     }
     
     // do not implement setter
@@ -305,7 +370,6 @@ public class Game implements Serializable, Comparable<Game>{
         String str = "";
         
         str += "Title: " + title + "\n";
-        str += "Cover: " + cover + "\n";
         str += "Publisher: " + publisher + "\n";
         str += "Platform: " + platform + "\n";
         str += "URL: " + url + "\n";
@@ -330,6 +394,15 @@ public class Game implements Serializable, Comparable<Game>{
             if ( olderUsedPrices.size() < 1 ) { str += "\n"; }
         }
         
+        if ( new_ID != null )
+            str += "New ID: " + new_ID + "\n";
+        
+        if ( used_ID != null )
+            str += "Used ID: " + used_ID + "\n";
+        
+        if ( digital_ID != null )
+            str += "Digital ID: " + digital_ID + "\n";
+            
         str += "PEGI: " + pegi.toString() + "\n";
         str += "Genres:" + genres.toString() + "\n";        
         

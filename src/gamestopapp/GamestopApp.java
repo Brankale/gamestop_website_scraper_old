@@ -9,6 +9,8 @@ public class GamestopApp {
     public static void main(String[] args) {
         try {
             
+            long ms = System.currentTimeMillis();
+            
             Games wishlist = new Games();
             
             wishlist.add( new Game("https://www.gamestop.it/PS4/Games/110143/detroit-become-human") );
@@ -19,7 +21,10 @@ public class GamestopApp {
             wishlist.add( new Game("https://www.gamestop.it/PS4/Games/99826") );
             wishlist.add( new Game("https://www.gamestop.it/PS4/Games/34052/gta-v") );
             
+            ms = System.currentTimeMillis() - ms;
+            System.out.println( ms + "ms" );
             
+            //System.out.println( wishlist.toString() );
             
             
             
