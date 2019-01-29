@@ -5,7 +5,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.Serializable;
 import java.net.URL;
-import java.net.URLEncoder;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
@@ -19,12 +18,10 @@ import org.jsoup.select.Elements;
 
 /*
     private double vote;                    // not definitive (I find it useless, if you want a game the vote doesn't matter but sometime can help)
-    private int usersNumber;                // not definitive (I find it useless)
-    private List<Image> gallery;            // not definitive (may include photos and videos) (can be just a List<String> that contains the URLs)
-    
+    private int usersNumber;                // not definitive (I find it useless)    
     private String description;
     private String addToCart;
-    private boolean storeAvailability;      // to discuss
+    private boolean storeAvailability;
     // the "BONUS" section should be added
 */
 
@@ -66,34 +63,34 @@ public class Game implements Serializable, Comparable<Game>{
         this.releaseDate = null;
     }
     
-    public Game (String url) throws IOException {        
+    public Game (String url) throws IOException
+    {
+        // init attributes 
+        this();       
         
-        this();     // init attributes   
+        // 1. GET INFORMATION FROM THE WEBSITE
         
-        // GET INFORMATION FROM THE WEBSITE
-        
-        Document html = Jsoup.connect(url).get();        // return the HTML page
-        Log.info("Game", "downloaded HTML \t\t" + url);
+        Document html = Jsoup.connect(url).get();
+        Log.info("Game", "downloaded HTML", url);
         
         Element body = html.body();
-        
         Element prodMain = body.getElementById("prodMain");
         
         Element mainInfo = prodMain.getElementsByClass("mainInfo").get(0);
         
-        // in "mainInfo" section we can find: title, publisher, platform, vote, voting users
+        // "mainInfo" contains: title, publisher, platform, vote, voting users
         Element prodTitle = mainInfo.getElementsByClass("prodTitle").get(0);        
         this.title = prodTitle.getElementsByTag("h1").text();
         this.publisher = prodTitle.getElementsByTag("strong").text();
         this.platform = url.split("/")[3];
         this.url = url;       
         
-        // in this section we can find: prices, pegi, id, genre, release date, availability, addToCard
+        // "prodRightBlock" contains: prices, pegi, id, genre, release date, availability, addToCard
         Element prodRightBlock = prodMain.getElementsByClass("prodRightBlock").get(0);        
         Element buySection = prodRightBlock.getElementsByClass("buySection").get(0);
         
-        for ( Element singleVariantDetails : buySection.getElementsByClass("singleVariantDetails") ){
-            
+        for ( Element singleVariantDetails : buySection.getElementsByClass("singleVariantDetails") )
+        {
             Element singleVariantText = singleVariantDetails.getElementsByClass("singleVariantText").get(0);                
             String price = null;
 
@@ -118,56 +115,43 @@ public class Game implements Serializable, Comparable<Game>{
                     this.olderUsedPrices.add( stringToPrice(price) );
                 }
             }
-            
         }
         
-        
-        // "addedDet" section contains: pegi, id, genre, releaseDate
+        // "addedDet" contains: pegi, IDs, Genres, Official Site, Players, ReleaseDate
         Element addedDet = prodRightBlock.getElementById("addedDet");
         
         // cycle is totally useless, is just for performance  
         Element ageBlock = addedDet.getElementsByClass("ageBlock").get(0);
         
-        // Init PEGI
+        // set PEGI
         // to replace with getElementByClass StartingWith
         for ( Element e : ageBlock.getAllElements() )
-        {            
-            if ( e.attr("class").equals("pegi18") ) { this.pegi.add("pegi18"); continue; }
-            if ( e.attr("class").equals("pegi16") ) { this.pegi.add("pegi16"); continue; }
-            if ( e.attr("class").equals("pegi12") ) { this.pegi.add("pegi12"); continue; }
-            if ( e.attr("class").equals("pegi7") )  { this.pegi.add("pegi7"); continue; }
-            if ( e.attr("class").equals("pegi3") )  { this.pegi.add("pegi3"); continue; }
+        {
+            String str = e.attr("class");
             
-            if ( e.attr("class").equals("ageDescr BadLanguage") )   { this.pegi.add("bad-language"); continue; }
-            if ( e.attr("class").equals("ageDescr violence") )      { this.pegi.add("violence"); continue; }
-            if ( e.attr("class").equals("ageDescr online") )        { this.pegi.add("online"); continue; }
-            if ( e.attr("class").equals("ageDescr sex") )           { this.pegi.add("sex"); continue; }
-            if ( e.attr("class").equals("ageDescr fear") )          { this.pegi.add("fear"); continue; }
-            if ( e.attr("class").equals("ageDescr drugs") )         { this.pegi.add("drugs"); continue; }
-            if ( e.attr("class").equals("ageDescr discrimination") ){ this.pegi.add("discrimination"); continue; }
-            if ( e.attr("class").equals("ageDescr gambling") )      { this.pegi.add("gambling"); }
+            if ( str.equals("pegi18") ) { this.pegi.add("pegi18"); continue; }
+            if ( str.equals("pegi16") ) { this.pegi.add("pegi16"); continue; }
+            if ( str.equals("pegi12") ) { this.pegi.add("pegi12"); continue; }
+            if ( str.equals("pegi7") )  { this.pegi.add("pegi7"); continue; }
+            if ( str.equals("pegi3") )  { this.pegi.add("pegi3"); continue; }
+            
+            if ( str.equals("ageDescr BadLanguage") )   { this.pegi.add("bad-language"); continue; }
+            if ( str.equals("ageDescr violence") )      { this.pegi.add("violence"); continue; }
+            if ( str.equals("ageDescr online") )        { this.pegi.add("online"); continue; }
+            if ( str.equals("ageDescr sex") )           { this.pegi.add("sex"); continue; }
+            if ( str.equals("ageDescr fear") )          { this.pegi.add("fear"); continue; }
+            if ( str.equals("ageDescr drugs") )         { this.pegi.add("drugs"); continue; }
+            if ( str.equals("ageDescr discrimination") ){ this.pegi.add("discrimination"); continue; }
+            if ( str.equals("ageDescr gambling") )      { this.pegi.add("gambling"); }
         }        
         
-        // Search: Codice Articolo / Genere / Sito ufficiale / Giocatori / Rilascio
+        // set: IDs, Genres, Official Site, Players, Release Date
         for ( Element e : addedDet.getElementsByTag("p") )
         {            
-            // USE THIS FOR TESTS
-            /*
-            System.out.println( "\n" + e.toString() );
-            System.out.println( e.childNodeSize() + "\n");
-            if ( e.childNodeSize() > 1 )
-                System.out.println( "#" + e.child(0).text() );
-            */
-            
-            /*            
-            for ( TextNode t : p.textNodes() )
-                System.out.println( t.toString() );
-            */  
-            
             // important check to avoid IndexOutOfBound Exception
             if ( e.childNodeSize() > 1 )
             {
-                // Set item ID
+                // set item ID
                 if ( e.child(0).text().equals("Codice articolo") )
                 {                    
                     for ( Node n : e.childNodes() )
@@ -182,21 +166,18 @@ public class Game implements Serializable, Comparable<Game>{
 
                         if ( id.split(":")[0].equals("Nuovo") ){
                             this.new_ID = id.split(":")[1];
-                            //System.out.println( "new ID : " + new_ID );
                             continue;
                         }
                         
                         if ( id.split(":")[0].equals("Usato") ){
                             this.used_ID = id.split(":")[1];
-                            //System.out.println( "used ID : " + used_ID );
                             continue;
                         }
                         
-                        // NB: "ContenutoDigitale" should have a space between the two words, but before
-                        // I removed the spaces, so it must be written like this
+                        // NB: "ContenutoDigitale" should be like this "Contenuto Digitale"
+                        // but before I removed the spaces, so it must be written like this
                         if ( id.split(":")[0].equals("ContenutoDigitale") ){
                             this.digital_ID = id.split(":")[1];
-                            //System.out.println( "digital ID : " + digital_ID );
                         }                        
                     }
                     continue;
@@ -233,26 +214,22 @@ public class Game implements Serializable, Comparable<Game>{
                     this.releaseDate = releaseDate.replace(".","/");
                 }                
             }                      
-        }
+        }        
         
-        
-        
-        // CREATION OF CACHES FOLDERS
+        // 2. CREATION OF CACHES FOLDERS
         
         /*
+            CACHES FOLDER STRUCTURE
         
-        CACHES FOLDER STRUCTURE
-        
-        userData/
-            - file.tmp
-            - GameID/
-                - cover.jpg
-                - gallery/
-                    - imageXX.jpg
+            userData/                       contains all caches
+                |- xxx.tmp                  example of file
+                |- GameID/                  it's a folder with the name of the Game ID that contains all the data about a game
+                    |- cover.jpg            it's the cover of the game
+                    |- gallery/             it's the folder which contains all the images of the gallery
+                        |- imageXX.jpg      it's a image of the the game
         */
         
         // create userData folder if doesn't exist
-        // userData folder contains caches
         File directories = new File("userData");
         if ( !directories.exists() ){
             directories.mkdir();
@@ -269,11 +246,10 @@ public class Game implements Serializable, Comparable<Game>{
         
         if ( !directories.exists() ){
             directories.mkdir();
-            Log.info("Game", "folder created \t\t\t" + path);
+            Log.info("Game", "folder created", path);
         } else {
-            Log.warning("Game", "folder already exist \t\t" + path);
+            Log.warning("Game", "folder already exist", path);
         }
-        
         
         // in "prodLeftBlock" section we can find the cover
         Element prodLeftBlock = prodMain.getElementsByClass("prodLeftBlock").get(0);
@@ -284,12 +260,12 @@ public class Game implements Serializable, Comparable<Game>{
         if( !imageOffline.exists() ){
             try ( InputStream in = new URL(imageURL).openStream() ) {
                 Files.copy(in, Paths.get(path+"cover.jpg"));
-                Log.info("Game", "cover downloaded \t\t" + imageURL);
+                Log.info("Game", "cover downloaded", imageURL);
             } catch (IOException e) {
-                Log.error("Game", "cannot download the cover \t" + imageURL);
+                Log.error("Game", "cannot download the cover", imageURL);
             }
         } else {
-            Log.info("Game", "cover already exist \t\t" + imageURL);
+            Log.info("Game", "cover already exist", imageURL);
         }
         
         // in "mediaIn" section we can find the gallery
@@ -325,22 +301,18 @@ public class Game implements Serializable, Comparable<Game>{
                     if ( !imageOffline.exists() ){
                         try ( InputStream in = new URL(imageURL).openStream() ) {
                             Files.copy(in, Paths.get(imageURI));
-                            Log.info("Game", "downloaded the image \t\t" + imageURL.split("/")[6]);
+                            Log.info("Game", "downloaded the image", imageURL.split("/")[6]);
                         } catch (Exception ex) {
-                            Log.error("Game", "cannot download the image \t" + imageURL.split("/")[6]);
+                            Log.error("Game", "cannot download the image", imageURL.split("/")[6]);
                         }
                     } else {
-                        Log.warning("Game", "the image already exist \t" + imageURL.split("/")[6]);
+                        Log.warning("Game", "the image already exist", imageURL.split("/")[6]);
                     }
                 }
             }
         }
         
     }
-    
-    // do not implement setter
-    
-    // implements getter when all the attributes are definitive
 
     public String getPlatform() {
         return platform;
@@ -361,10 +333,7 @@ public class Game implements Serializable, Comparable<Game>{
     public String getTitle() {
         return title;
     }
-    
-    
 
-    // toString method at the moment is used just for tests
     @Override
     public String toString() {
         String str = "";
@@ -427,7 +396,7 @@ public class Game implements Serializable, Comparable<Game>{
         
         // NOTE: these two URLs are the same
         // https://www.gamestop.it/PS3/Games/31910/persona-4-arena-limited-edition
-        // https://www.gamestop.it/PS3/Games/31910        
+        // https://www.gamestop.it/PS3/Games/31910
         
         return Objects.equals(this.url, other.url);     // See the problem above
     }
@@ -441,7 +410,7 @@ public class Game implements Serializable, Comparable<Game>{
 
     @Override
     public int compareTo(Game game) {
-        return this.title.compareTo(game.title);    // game.title -> game.getTitle();
+        return this.title.compareTo(game.getTitle());
     }
     
     public void update () {
@@ -450,13 +419,11 @@ public class Game implements Serializable, Comparable<Game>{
     }
     
     private double stringToPrice ( String price )
-    {        
-        //System.out.println( "#" + price + "#" );        
+    {      
         price = price.replace(',', '.');
         price = price.replace("€", "");
         price = price.replace("CHF", "");
         price = price.trim();
-        //System.out.println( "#" + price + "#" );
         
         return Double.parseDouble(price);
     }
