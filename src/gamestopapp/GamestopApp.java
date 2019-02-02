@@ -5,7 +5,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 public class GamestopApp {
-
+    
     public static void main(String[] args) {
         try {
             
@@ -24,9 +24,13 @@ public class GamestopApp {
             ms = System.currentTimeMillis() - ms;
             System.out.println( ms + "ms" );
             
-            //System.out.println( wishlist.toString() );
+            System.out.println( wishlist.toString() );
             
-            
+            try{
+                wishlist.exportXML("games.xml");
+            }catch(Exception e){
+                e.printStackTrace();
+            }
             
             
             //System.out.println( wishlist.toString() );            

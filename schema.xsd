@@ -36,9 +36,9 @@
 									</xs:sequence>
 								</xs:complexType>
 							</xs:element>
-							<xs:element name="newId" type="xs:string"/>
-							<xs:element name="digitalId" type="xs:string"/>
-							<xs:element name="usedId" type="xs:string"/>
+							<xs:element name="newId" type="xs:string" minOccurs="0"/>
+							<xs:element name="digitalId" type="xs:string" minOccurs="0"/>
+							<xs:element name="usedId" type="xs:string" minOccurs="0"/>
 							<xs:element name="genres" minOccurs="0" maxOccurs="1">
 								<xs:complexType>
 									<xs:sequence>
@@ -46,7 +46,7 @@
 									</xs:sequence>
 								</xs:complexType>
 							</xs:element>
-							<xs:element name="officialSite" type="xs:string"/>
+							<xs:element name="officialSite" type="xs:string" minOccurs="0"/>
 							<xs:element name="players" type="xs:string" minOccurs="0"/>
 							<xs:element name="releaseDate" type="xs:string"/>
 						</xs:sequence>
