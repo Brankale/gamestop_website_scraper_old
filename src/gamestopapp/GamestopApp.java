@@ -11,8 +11,9 @@ public class GamestopApp {
             
             long ms = System.currentTimeMillis();
             
-            Games wishlist = new Games();
-            
+            //Games wishlist = new Games();
+            Games wishlist = Games.importXML("games.xml");
+            /*
             wishlist.add( new Game("https://www.gamestop.it/PS4/Games/110143/detroit-become-human") );
             wishlist.add( new Game("https://www.gamestop.it/PS4/Games/110143/detroit-become-human") );    
             wishlist.add( new Game("https://www.gamestop.it/PS4/Games/101550/persona-5-steelbook-launch-edition") );
@@ -20,17 +21,21 @@ public class GamestopApp {
             wishlist.add( new Game("https://www.gamestop.it/PS3/Games/31910/persona-4-arena-limited-edition") );
             wishlist.add( new Game("https://www.gamestop.it/PS4/Games/99826") );
             wishlist.add( new Game("https://www.gamestop.it/PS4/Games/34052/gta-v") );
+            */
+            
+            
             
             ms = System.currentTimeMillis() - ms;
             System.out.println( ms + "ms" );
             
             System.out.println( wishlist.toString() );
             
+            /*
             try{
                 wishlist.exportXML("games.xml");
             }catch(Exception e){
                 e.printStackTrace();
-            }
+            }*/
             
             
             //System.out.println( wishlist.toString() );            

@@ -18,6 +18,7 @@ import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.nodes.Node;
 import org.jsoup.select.Elements;
+import org.w3c.dom.NodeList;
 
 /*
     private double vote;                    // not definitive (I find it useless, if you want a game the vote doesn't matter but sometime can help)
@@ -560,4 +561,109 @@ public class Game implements Serializable, Comparable<Game>{
         return game;
     }
     
+    public static Game importXML(org.w3c.dom.Element element){
+        Game game = new Game();
+        
+        //If Element is not a "game"
+        if(!element.getNodeName().equals("game")) return null;
+        
+        game.title = element.getElementsByTagName("title").item(0).getTextContent().trim();
+        game.url = element.getElementsByTagName("url").item(0).getTextContent().trim();
+        game.publisher = element.getElementsByTagName("publisher").item(0).getTextContent().trim();
+        game.platform = element.getElementsByTagName("platform").item(0).getTextContent().trim();
+        
+        //NewPrice
+        NodeList testNewPrice = element.getElementsByTagName("newPrice");
+        if(testNewPrice.getLength() > 0){
+            game.newPrice = Double.parseDouble(testNewPrice.item(0).getTextContent().trim());
+        }
+        
+        //OlderNewPrices
+        NodeList testOlderNewPrices = element.getElementsByTagName("olderNewPrices");
+        if(testOlderNewPrices.getLength() > 0){
+            org.w3c.dom.Element elementOlderNewPrices = (org.w3c.dom.Element)testOlderNewPrices.item(0);
+            NodeList listOlderNewPrices = elementOlderNewPrices.getElementsByTagName("price");
+            
+            for(int i = 0; i<listOlderNewPrices.getLength(); i++){
+                org.w3c.dom.Node elementPrice = listOlderNewPrices.item(i);        
+                game.olderNewPrices.add(Double.parseDouble(elementPrice.getTextContent().trim()));
+            }
+            
+        }
+        
+        //UsedPrice
+        NodeList testUsedPrice = element.getElementsByTagName("usedPrice");
+        if(testUsedPrice.getLength() > 0){
+            game.usedPrice = Double.parseDouble(testUsedPrice.item(0).getTextContent().trim());
+        }
+        
+        //OlderUsedPrices
+        NodeList testOlderUsedPrices = element.getElementsByTagName("olderUsedPrices");
+        if(testOlderUsedPrices.getLength() > 0){
+            org.w3c.dom.Element elementOlderUsedPrices = (org.w3c.dom.Element)testOlderUsedPrices.item(0);
+            NodeList listOlderUsedPrices = elementOlderUsedPrices.getElementsByTagName("price");
+            
+            for(int i = 0; i<listOlderUsedPrices.getLength(); i++){
+                org.w3c.dom.Node elementPrice = listOlderUsedPrices.item(i);        
+                game.olderUsedPrices.add(Double.parseDouble(elementPrice.getTextContent().trim()));
+            }
+            
+        }
+        
+        //Pegi
+        org.w3c.dom.Element elementPegiList = (org.w3c.dom.Element)element.getElementsByTagName("pegiList").item(0);
+        NodeList listPegi = elementPegiList.getElementsByTagName("pegi");
+        for(int i = 0; i<listPegi.getLength(); i++){
+            org.w3c.dom.Node elementPegi = listPegi.item(i);
+            game.pegi.add(elementPegi.getTextContent());
+        }
+        
+        //NewID
+        NodeList testNewId = element.getElementsByTagName("newId");
+        if(testNewId.getLength() > 0){
+            game.new_ID = testNewId.item(0).getTextContent().trim();
+        }
+        
+        //DigitalID
+        NodeList testDigitalId = element.getElementsByTagName("digitalId");
+        if(testDigitalId.getLength() > 0){
+            game.digital_ID = testDigitalId.item(0).getTextContent().trim();
+        }
+        
+        //UsedID
+        NodeList testUsedId = element.getElementsByTagName("usedId");
+        if(testUsedId.getLength() > 0){
+            game.used_ID = testUsedId.item(0).getTextContent().trim();
+        }
+        
+        //Genres
+        NodeList testGenres = element.getElementsByTagName("genres");
+        if(testGenres.getLength() > 0){
+            org.w3c.dom.Element elementGenres = (org.w3c.dom.Element)testGenres.item(0);
+            NodeList listGenres = elementGenres.getElementsByTagName("genre");
+            
+            for(int i = 0; i<listGenres.getLength(); i++){
+                org.w3c.dom.Node elementGenre = listGenres.item(i);        
+                game.genres.add(elementGenre.getTextContent().trim());
+            }
+            
+        }
+        
+        //OfficialSite
+        NodeList testOfficialSite= element.getElementsByTagName("officialSite");
+        if(testOfficialSite.getLength() > 0){
+            game.officialSite = testOfficialSite.item(0).getTextContent().trim();
+        }
+        
+        //Players
+        NodeList testPlayers = element.getElementsByTagName("players");
+        if(testPlayers.getLength() > 0){
+            game.players = Short.parseShort(testPlayers.item(0).getTextContent().trim());
+        }
+        
+        game.releaseDate = element.getElementsByTagName("releaseDate").item(0).getTextContent();
+        
+        
+        return game;
+    }
 }

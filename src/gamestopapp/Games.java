@@ -24,6 +24,7 @@ import javax.xml.transform.stream.StreamResult;
 import javax.xml.validation.Schema;
 import javax.xml.validation.SchemaFactory;
 import org.w3c.dom.Document;
+import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
 
 public class Games extends ArrayList<Game> {
@@ -134,7 +135,26 @@ public class Games extends ArrayList<Game> {
         transformer.transform( new DOMSource(doc), new StreamResult(f));       
     }
     
-    private void validate(org.w3c.dom.Document doc) throws SAXException, IOException{
+    public static Games importXML(String fileName) throws ParserConfigurationException,SAXException,IOException{
+        DocumentBuilder parser = DocumentBuilderFactory.newInstance().newDocumentBuilder();
+        org.w3c.dom.Document doc = parser.parse(new File(fileName));       
+        validate(doc);
+        
+        Games games = new Games();
+        
+        org.w3c.dom.Element elementGames = doc.getDocumentElement();
+        NodeList listGames = elementGames.getElementsByTagName("game");
+        if(listGames.getLength() > 0){
+            for(int i = 0; i<listGames.getLength(); i++){
+                org.w3c.dom.Element elementGame = (org.w3c.dom.Element)listGames.item(i);
+                games.add(Game.importXML(elementGame));
+            }
+        }
+        
+        return games;
+    }
+    
+    private static void validate(org.w3c.dom.Document doc) throws SAXException, IOException{
         String language = XMLConstants.W3C_XML_SCHEMA_NS_URI;
         SchemaFactory factory = SchemaFactory.newInstance(language);
         Schema schema = factory.newSchema(new File(SCHEMA_PATH));
