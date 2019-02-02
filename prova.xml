@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<games>
+	<game>
+		<title>Gioco Bello</title>
+		<url>www.giocobello.it</url>
+		<publisher>Giochi Belli s.r.l.</publisher>
+		<platform>XBOX TWO</platform>
+		<newPrice>1000</newPrice>
+		<olderNewPrices>
+			<price>500</price>
+			<price>700</price>
+		</olderNewPrices>
+		<pegiList>
+			<pegi>Violentissimo</pegi>
+		</pegiList>
+		<newId>1</newId>
+		<digitalId>1</digitalId>
+		<usedId>1</usedId>
+		<genres>
+			<genre>MMORPG</genre>
+		</genres>
+		<officialSite>www.ufficiale.org</officialSite>
+		<players>4</players>
+		<releaseDate>1/1/1</releaseDate>
+	</game>
+</games>
