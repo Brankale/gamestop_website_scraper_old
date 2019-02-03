@@ -10,9 +10,12 @@ public class GamestopApp {
     public static void main(String[] args) {
         try {
             
-            /*
-            long ms = System.currentTimeMillis();
+            Games wishlist = Games.importXML("games.xml");
             
+            System.out.println(wishlist);
+            
+            //long ms = System.currentTimeMillis();
+            /*
             Games wishlist = new Games();
             
             wishlist.add( new Game("https://www.gamestop.it/PS4/Games/110143/detroit-become-human") );
@@ -22,11 +25,13 @@ public class GamestopApp {
             wishlist.add( new Game("https://www.gamestop.it/PS3/Games/31910/persona-4-arena-limited-edition") );
             wishlist.add( new Game("https://www.gamestop.it/PS4/Games/99826") );
             wishlist.add( new Game("https://www.gamestop.it/PS4/Games/34052/gta-v") );
-            
-            ms = System.currentTimeMillis() - ms;
-            System.out.println( ms + "ms" );
             */
-
+            //ms = System.currentTimeMillis() - ms;
+            //System.out.println( ms + "ms" );
+            
+            //System.out.println(wishlist);
+            //wishlist.exportXML("games.xml");
+            
             /*
             
             // this is the searchBar
@@ -46,6 +51,7 @@ public class GamestopApp {
             return;
             */
             
+            /*
             BufferedReader reader = new BufferedReader( new FileReader("gamelist.txt") );
             Games wishlist = new Games();
             Game g = null;
@@ -62,7 +68,7 @@ public class GamestopApp {
                 
                 game = reader.readLine();
             }
-            
+            */
             
         } catch (Exception ex) {
             Logger.getLogger(GamestopApp.class.getName()).log(Level.SEVERE, null, ex);
