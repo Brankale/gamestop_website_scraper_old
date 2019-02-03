@@ -1,6 +1,7 @@
 package gamestopapp;
 
-import java.util.Scanner;
+import java.io.BufferedReader;
+import java.io.FileReader;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -9,6 +10,7 @@ public class GamestopApp {
     public static void main(String[] args) {
         try {
             
+            /*
             long ms = System.currentTimeMillis();
             
             Games wishlist = new Games();
@@ -23,18 +25,7 @@ public class GamestopApp {
             
             ms = System.currentTimeMillis() - ms;
             System.out.println( ms + "ms" );
-            
-            //System.out.println( wishlist.toString() );
-            
-            
-            
-            
-            //System.out.println( wishlist.toString() );            
-            //wishlist.exportToBinary();
-            
-            //Games temp = Games.importFromBinary();
-            //System.out.println( temp.toString() );
-            
+            */
 
             /*
             
@@ -49,6 +40,29 @@ public class GamestopApp {
             }
 
             */
+            
+            /*
+            Game gh = new Game("https://www.gamestop.it/TELEFONIA/Games/32910/samsung-galaxy-tab-3-8-0-wi-fi-16gb");            
+            return;
+            */
+            
+            BufferedReader reader = new BufferedReader( new FileReader("gamelist.txt") );
+            Games wishlist = new Games();
+            Game g = null;
+            
+            String game = reader.readLine();
+            while ( game != null )
+            {
+                
+                Log.debug("Game searched", game);
+                for ( GamePreview gp : GamePreview.searchGame(game) ) {
+                    g = new Game( gp.getUrl() );
+                    wishlist.add(g);
+                }
+                
+                game = reader.readLine();
+            }
+            
             
         } catch (Exception ex) {
             Logger.getLogger(GamestopApp.class.getName()).log(Level.SEVERE, null, ex);

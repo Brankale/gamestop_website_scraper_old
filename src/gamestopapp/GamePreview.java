@@ -25,7 +25,11 @@ public class GamePreview {
         this.title = title;
         this.url = url;
         this.platform = platform;
-        this.cover = ImageIO.read( new URL(image) );
+        try {
+            this.cover = ImageIO.read( new URL(image) );
+        } catch (IOException e) {
+            Log.error("GamePreview", "cannot download game cover", image);
+        }
     }
 
     public String getTitle() {
@@ -60,17 +64,20 @@ public class GamePreview {
     
     public static List<GamePreview> searchGame(String searchedGameName) throws UnsupportedEncodingException, IOException {
         
-        List<GamePreview> searchedGames = new ArrayList();        
+        List<GamePreview> searchedGames = new ArrayList();
+        
         String site = "https://www.gamestop.it";        
         String path = "/SearchResult/QuickSearch";        
         String query = "?q=" + URLEncoder.encode(searchedGameName, "UTF-8");
         String url = site + path + query;
         
         Document doc = Jsoup.connect(url).get();
-        Log.info("GamePreview", "search completed");
+        
+        
         Element body = doc.body();
         
         Elements gamesList = body.getElementsByClass("singleProduct");
+        Log.info("GamePreview", "search completed", gamesList.size()+" results" );
         
         for(Element game : gamesList){
             String gameImageUrl = game.getElementsByClass("prodImg").get(0).getElementsByTag("img").get(0).absUrl("data-llsrc");
@@ -79,6 +86,7 @@ public class GamePreview {
             String gamePlatform = gameUrl.split("/")[3];
             GamePreview previewGame = new GamePreview(gameTitle, gameUrl, gamePlatform, gameImageUrl );
             searchedGames.add(previewGame);
+            Log.debug("GamePreview", "game added");
         }
         
         return searchedGames;

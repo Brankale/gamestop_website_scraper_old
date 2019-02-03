@@ -1,10 +1,15 @@
 package gamestopapp;
 
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileReader;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.Serializable;
 import java.net.URL;
+import java.net.URLEncoder;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
@@ -36,12 +41,13 @@ public class Game implements Serializable, Comparable<Game>{
     private double usedPrice;               // it's the price for a used game
     private List<Double> olderUsedPrices;   // it's the old price for a used game (in rare cases there are two or more older prices)
     private List<String> pegi;              // it's a list containing all the types of PEGI a Game has
-    private String new_ID;
-    private String digital_ID;
+    private String new_ID;    
     private String used_ID;
+    private String digital_ID;
+    private String presell_ID;
     private List<String> genres;            // it's a list containing all the genres a Game has
     private String officialSite;            // it contains the URL of the official site of the Game
-    private short players;                  // it contains the number of players that can play the game at the same time
+    private String players;                 // it contains the number of players that can play the game at the same time
     private String releaseDate;             // it contains the release date of the game
 
     private Game() {
@@ -59,7 +65,7 @@ public class Game implements Serializable, Comparable<Game>{
         this.used_ID = null;
         this.genres = new ArrayList<>();
         this.officialSite = null;
-        this.players = -1;
+        this.players = null;
         this.releaseDate = null;
     }
     
@@ -70,11 +76,24 @@ public class Game implements Serializable, Comparable<Game>{
         
         // 1. GET INFORMATION FROM THE WEBSITE
         
-        Document html = Jsoup.connect(url).get();
-        Log.info("Game", "downloaded HTML", url);
+        Document html = null;
+        
+        try {
+            html = Jsoup.connect(url).get();
+            Log.info("Game", "downloaded HTML", url);
+        } catch (IOException e){
+            Log.error("Game", "Socket Timeout Exception");
+            return;
+        }
         
         Element body = html.body();
         Element prodMain = body.getElementById("prodMain");
+        
+        // if the page doesn't exist
+        if ( prodMain == null ){
+            Log.error("Game", "page doesn't exist", url);
+            return;
+        }
         
         Element mainInfo = prodMain.getElementsByClass("mainInfo").get(0);
         
@@ -120,30 +139,34 @@ public class Game implements Serializable, Comparable<Game>{
         // "addedDet" contains: pegi, IDs, Genres, Official Site, Players, ReleaseDate
         Element addedDet = prodRightBlock.getElementById("addedDet");
         
-        // cycle is totally useless, is just for performance  
-        Element ageBlock = addedDet.getElementsByClass("ageBlock").get(0);
         
-        // set PEGI
-        // to replace with getElementByClass StartingWith
-        for ( Element e : ageBlock.getAllElements() )
+        if ( !addedDet.getElementsByClass("ageBlock").isEmpty() )
         {
-            String str = e.attr("class");
-            
-            if ( str.equals("pegi18") ) { this.pegi.add("pegi18"); continue; }
-            if ( str.equals("pegi16") ) { this.pegi.add("pegi16"); continue; }
-            if ( str.equals("pegi12") ) { this.pegi.add("pegi12"); continue; }
-            if ( str.equals("pegi7") )  { this.pegi.add("pegi7"); continue; }
-            if ( str.equals("pegi3") )  { this.pegi.add("pegi3"); continue; }
-            
-            if ( str.equals("ageDescr BadLanguage") )   { this.pegi.add("bad-language"); continue; }
-            if ( str.equals("ageDescr violence") )      { this.pegi.add("violence"); continue; }
-            if ( str.equals("ageDescr online") )        { this.pegi.add("online"); continue; }
-            if ( str.equals("ageDescr sex") )           { this.pegi.add("sex"); continue; }
-            if ( str.equals("ageDescr fear") )          { this.pegi.add("fear"); continue; }
-            if ( str.equals("ageDescr drugs") )         { this.pegi.add("drugs"); continue; }
-            if ( str.equals("ageDescr discrimination") ){ this.pegi.add("discrimination"); continue; }
-            if ( str.equals("ageDescr gambling") )      { this.pegi.add("gambling"); }
-        }        
+            // cycle is totally useless, is just for performance
+            Element ageBlock = addedDet.getElementsByClass("ageBlock").get(0);
+
+            // set PEGI
+            // to replace with getElementByClass StartingWith
+            for ( Element e : ageBlock.getAllElements() )
+            {
+                String str = e.attr("class");
+
+                if ( str.equals("pegi18") ) { this.pegi.add("pegi18"); continue; }
+                if ( str.equals("pegi16") ) { this.pegi.add("pegi16"); continue; }
+                if ( str.equals("pegi12") ) { this.pegi.add("pegi12"); continue; }
+                if ( str.equals("pegi7") )  { this.pegi.add("pegi7"); continue; }
+                if ( str.equals("pegi3") )  { this.pegi.add("pegi3"); continue; }
+
+                if ( str.equals("ageDescr BadLanguage") )   { this.pegi.add("bad-language"); continue; }
+                if ( str.equals("ageDescr violence") )      { this.pegi.add("violence"); continue; }
+                if ( str.equals("ageDescr online") )        { this.pegi.add("online"); continue; }
+                if ( str.equals("ageDescr sex") )           { this.pegi.add("sex"); continue; }
+                if ( str.equals("ageDescr fear") )          { this.pegi.add("fear"); continue; }
+                if ( str.equals("ageDescr drugs") )         { this.pegi.add("drugs"); continue; }
+                if ( str.equals("ageDescr discrimination") ){ this.pegi.add("discrimination"); continue; }
+                if ( str.equals("ageDescr gambling") )      { this.pegi.add("gambling"); }
+            }
+        }
         
         // set: IDs, Genres, Official Site, Players, Release Date
         for ( Element e : addedDet.getElementsByTag("p") )
@@ -178,7 +201,12 @@ public class Game implements Serializable, Comparable<Game>{
                         // but before I removed the spaces, so it must be written like this
                         if ( id.split(":")[0].equals("ContenutoDigitale") ){
                             this.digital_ID = id.split(":")[1];
-                        }                        
+                            continue;
+                        }
+                        
+                        if ( id.split(":")[0].equals("Presell") ){
+                            this.presell_ID = id.split(":")[1];
+                        }
                     }
                     continue;
                 }
@@ -203,7 +231,7 @@ public class Game implements Serializable, Comparable<Game>{
                 // set the number of players
                 if ( e.child(0).text().equals("Giocatori") ) {
                     // System.out.println( e.child(1).text() );
-                    this.players = Short.parseShort( e.child(1).text() );
+                    this.players = e.child(1).text();
                     continue;
                 }
                 
@@ -241,8 +269,14 @@ public class Game implements Serializable, Comparable<Game>{
         
         if ( new_ID != null )    { path = "userData/" + new_ID + "/"; }
         if ( digital_ID != null ){ path = "userData/" + digital_ID + "/"; }
+        if ( presell_ID != null ){ path = "userData/" + presell_ID  + "/"; }
         
-        directories = new File(path);
+        try {
+            directories = new File(path);
+        } catch (Exception e) {
+            Log.error("Game", "error during creation of", path);
+            Log.error("Game", "the title with the error is", title);
+        }
         
         if ( !directories.exists() ){
             directories.mkdir();
@@ -250,6 +284,27 @@ public class Game implements Serializable, Comparable<Game>{
         } else {
             Log.warning("Game", "folder already exist", path);
         }
+        
+        // --------------------------------------------
+        File tmp = new File( path+"/tmp" );
+        
+        if ( !tmp.exists() )
+        {
+            BufferedWriter writer = new BufferedWriter(new FileWriter(path+"/tmp"));
+            writer.write(url);
+            writer.close();            
+            Log.info("Game", "tmp file created", path);
+        } else {
+            BufferedReader reader = new BufferedReader(new FileReader(path+"/tmp"));
+            String str = reader.readLine();
+            if ( str.equals(url) ){
+                Log.warning("Game", "file url already exist", path);
+            } else {
+               Log.error("Game", "two different products have the same ID");
+            }
+            reader.close();
+        }
+        // ----------------------------------------------------------
         
         // in "prodLeftBlock" section we can find the cover
         Element prodLeftBlock = prodMain.getElementsByClass("prodLeftBlock").get(0);
@@ -265,7 +320,7 @@ public class Game implements Serializable, Comparable<Game>{
                 Log.error("Game", "cannot download the cover", imageURL);
             }
         } else {
-            Log.info("Game", "cover already exist", imageURL);
+            Log.warning("Game", "cover already exist", imageURL);
         }
         
         // in "mediaIn" section we can find the gallery
@@ -293,15 +348,23 @@ public class Game implements Serializable, Comparable<Game>{
                 
                 Elements imagesURLs = mediaImages.get(0).getElementsByTag("a");
                 for ( Element e : imagesURLs )
-                {                    
+                {
                     imageURL = e.attr("href");
+                    
+                    if ( imageURL.equals("") ){
+                        // this can handle very rare cases of malformed HTMLs
+                        // ex. https://www.gamestop.it/Varie/Games/95367/cambio-driving-force-per-volanti-g29-e-g920
+                        imageURL = e.getElementsByTag("img").get(0).attr("src");
+                    }
+                    
                     String imageURI = path + imageURL.split("/")[6];
+                    
                     imageOffline = new File(imageURI);
                     
                     if ( !imageOffline.exists() ){
                         try ( InputStream in = new URL(imageURL).openStream() ) {
                             Files.copy(in, Paths.get(imageURI));
-                            Log.info("Game", "downloaded the image", imageURL.split("/")[6]);
+                            Log.info("Game", "image downloaded", imageURL.split("/")[6]);
                         } catch (Exception ex) {
                             Log.error("Game", "cannot download the image", imageURL.split("/")[6]);
                         }
@@ -378,7 +441,7 @@ public class Game implements Serializable, Comparable<Game>{
         if ( this.officialSite != null )
             str += "Official Site: " + officialSite + "\n";
         
-        if ( this.players > 0 )
+        if ( this.players != null )
             str += "Number of Players: " + players + "\n";
         
         str += "Release Date: " + releaseDate + "\n";
