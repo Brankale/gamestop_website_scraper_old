@@ -10,9 +10,9 @@ public class GamestopApp {
     public static void main(String[] args) {
         try {
             
-            Games wishlist = Games.importXML("games.xml");
+            //Games wishlist = Games.importXML("games.xml");
             
-            System.out.println(wishlist);
+            //System.out.println(wishlist);
             
             //long ms = System.currentTimeMillis();
             /*
@@ -51,7 +51,7 @@ public class GamestopApp {
             return;
             */
             
-            /*
+            
             BufferedReader reader = new BufferedReader( new FileReader("gamelist.txt") );
             Games wishlist = new Games();
             Game g = null;
@@ -68,7 +68,7 @@ public class GamestopApp {
                 
                 game = reader.readLine();
             }
-            */
+            
             
         } catch (Exception ex) {
             Logger.getLogger(GamestopApp.class.getName()).log(Level.SEVERE, null, ex);

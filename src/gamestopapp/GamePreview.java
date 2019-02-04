@@ -4,6 +4,7 @@ import java.awt.Image;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.MalformedURLException;
+import java.net.SocketTimeoutException;
 import java.net.URL;
 import java.net.URLEncoder;
 import java.util.ArrayList;
@@ -71,8 +72,14 @@ public class GamePreview {
         String query = "?q=" + URLEncoder.encode(searchedGameName, "UTF-8");
         String url = site + path + query;
         
-        Document doc = Jsoup.connect(url).get();
+        Document doc = null;
         
+        try {
+            doc = Jsoup.connect(url).get();
+        } catch (SocketTimeoutException ste) {
+            Log.error("GamePreview","SocketTimeoutException", url);
+            return null;
+        }
         
         Element body = doc.body();
         

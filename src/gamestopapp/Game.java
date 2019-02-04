@@ -331,14 +331,14 @@ public class Game implements Serializable, Comparable<Game>{
         // check if there are some medias
         if ( !mediaIn.isEmpty() )
         {
-            Elements mediaVideo = prodMain.getElementsByClass("mediaVideo");
+            Elements mediaVideo = mediaIn.get(0).getElementsByClass("mediaVideo");
 
             if ( !mediaVideo.isEmpty() ){                
                 // to take the video you must use Javascript
                 // it's possible to pick the URL but just from the browser
             }            
 
-            Elements mediaImages = prodMain.getElementsByClass("mediaImages");
+            Elements mediaImages = mediaIn.get(0).getElementsByClass("mediaImages");
             if ( !mediaImages.isEmpty() )
             {
                 // Create the folder if there are media files
