@@ -93,7 +93,7 @@ public class GamePreview {
             String gamePlatform = gameUrl.split("/")[3];
             GamePreview previewGame = new GamePreview(gameTitle, gameUrl, gamePlatform, gameImageUrl );
             searchedGames.add(previewGame);
-            Log.debug("GamePreview", "game added");
+            //Log.debug("GamePreview", "game added");
         }
         
         return searchedGames;

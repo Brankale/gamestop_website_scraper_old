@@ -4,6 +4,8 @@ package gamestopapp;
 
 public class Log {
     
+    private static final int MAX_MESSAGE_LENGTH = 40;
+    
     // Reset
     private static final String RESET = "\033[0m";  // Text Reset
 
@@ -33,8 +35,9 @@ public class Log {
         System.out.println(GREEN + className + " : " + message + RESET);
     }
     
-    public static void info(String className, String message, String resource) {
-        System.out.println(GREEN + className + " : " + message + "   src: " + resource + RESET);
+    public static void info(String className, String message, String resource) {        
+        message = formatMessage(message);      
+        System.out.println(GREEN + className + " : " + message + "\t\t" + resource + RESET);
     }
 
     //error
@@ -43,7 +46,8 @@ public class Log {
     }
     
     public static void error(String className, String message, String resource) {
-        System.out.println(RED + className + " : " + message + "   src: " + resource + RESET);
+        message = formatMessage(message);      
+        System.out.println(RED + className + " : " + message + "\t\t" + resource + RESET);
     }
 
     //debug
@@ -52,7 +56,8 @@ public class Log {
     }
     
     public static void debug(String className, String message, String resource) {
-        System.out.println( CYAN + className + " :" + message + "   src: " + resource + RESET);
+        message = formatMessage(message);      
+        System.out.println( CYAN + className + " : " + message + "\t\t" + resource + RESET);
     }
 
     //warning
@@ -60,8 +65,20 @@ public class Log {
         System.out.println( PURPLE_BOLD + className + " : " + message + RESET);
     }
     
-    public static void warning(String className, String message, String resource) {
-        System.out.println( PURPLE_BOLD + className + " : " + message + "   src: " + resource + RESET);
+    public static void warning(String className, String message, String resource) {        
+        message = formatMessage(message);        
+        System.out.println( PURPLE_BOLD + className + " : " + message + "\t\t" + resource + RESET);
+    }
+    
+    private static String formatMessage( String message )
+    {
+        if ( message.length() > MAX_MESSAGE_LENGTH ){
+            message = message.substring(0, MAX_MESSAGE_LENGTH-3) + "...";
+        } else {
+            while ( message.length() < MAX_MESSAGE_LENGTH )
+                message += " ";
+        }
+        return message;
     }
     
 }
