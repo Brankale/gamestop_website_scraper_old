@@ -24,6 +24,7 @@ import javax.xml.validation.Schema;
 import javax.xml.validation.SchemaFactory;
 import jdk.internal.org.xml.sax.SAXException;
 import org.w3c.dom.NodeList;
+import javax.xml.transform.OutputKeys;
 
 public class Games extends ArrayList<Game> {
     
@@ -128,6 +129,8 @@ public class Games extends ArrayList<Game> {
         
         // Save
         Transformer transformer = TransformerFactory.newInstance().newTransformer();
+        transformer.setOutputProperty(OutputKeys.INDENT, "yes");
+        transformer.setOutputProperty("{http://xml.apache.org/xslt}indent-amount", "2");
         File f = new File(fileName);
         transformer.transform( new DOMSource(doc), new StreamResult(f));       
     }
