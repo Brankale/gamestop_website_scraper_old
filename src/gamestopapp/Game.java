@@ -1,176 +1,244 @@
 package gamestopapp;
 
-import java.io.BufferedReader;
-import java.io.BufferedWriter;
 import java.io.File;
-import java.io.FileReader;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.Serializable;
+import java.net.MalformedURLException;
 import java.net.URL;
-import java.net.URLEncoder;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
-import javax.xml.parsers.ParserConfigurationException;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.nodes.Node;
+import org.jsoup.nodes.TextNode;
 import org.jsoup.select.Elements;
-import org.w3c.dom.NodeList;
 
-/*
-    private double vote;                    // not definitive (I find it useless, if you want a game the vote doesn't matter but sometime can help)
-    private int usersNumber;                // not definitive (I find it useless)    
-    private String description;
-    private String addToCart;
-    private boolean storeAvailability;
-    // the "BONUS" section should be added
-*/
-
-public class Game implements Serializable, Comparable<Game>{
+public class Game implements Comparable<Game> {
     
-    private String title;                   // it contains the title of the game
-    private String url;                     // it contains the URL of the Gamestop's page
-    private String publisher;               // it contains the game's publisher name
-    private String platform;                // it contains the console where the game run (can be also a Gadget)
-    private double newPrice;                // it's the price for a new game
-    private List<Double> olderNewPrices;    // it's the old price for a new game (in rare cases there are two or more older prices)
-    private double usedPrice;               // it's the price for a used game
-    private List<Double> olderUsedPrices;   // it's the old price for a used game (in rare cases there are two or more older prices)
-    private List<String> pegi;              // it's a list containing all the types of PEGI a Game has
-    private String new_ID;    
+    private final String PATH = "userData/";        // check for another location
+    
+    private String title;
+    private String url;
+    private String publisher;
+    private String platform;
+    private double newPrice;
+    private List<Double> olderNewPrices;
+    private double usedPrice;
+    private List<Double> olderUsedPrices;
+    private List<String> pegi;
+    private String new_ID;
     private String used_ID;
     private String digital_ID;
     private String presell_ID;
-    private List<String> genres;            // it's a list containing all the genres a Game has
-    private String officialSite;            // it contains the URL of the official site of the Game
-    private String players;                 // it contains the number of players that can play the game at the same time
-    private String releaseDate;             // it contains the release date of the game
+    private List<String> genres;
+    private String officialSite;
+    private String players;
+    private String releaseDate;
+    private List<Promo> promo;
+    private String description;
+    
+    /**
+     * This function returns a Game object
+     * 
+     * @param url
+     * url of the game
+     * @throws java.io.IOException
+     */
+    public Game ( String url ) throws IOException
+    {        
+        this.url = url;
+            
+        Document html = Jsoup.connect(url).get();
+        Element body = html.body();
+        
+        if ( updateMainInfo(body) == false )
+            throw new GameException();
+        
+        if ( updateMetadata(body) == false )
+            throw new GameException();
+        
+        if ( updatePrices(body) == false )
+            throw new GameException();
+        
+        // the following information are not necessary to create a game
+        updatePEGI(body);
+        updateBonus(body);
+        updateDescription(body);
 
-    private Game() {
-        this.title = null;
-        this.url = null;
-        this.publisher = null;
-        this.platform = null;
-        this.newPrice = -1;
-        this.olderNewPrices = new ArrayList<>();
-        this.usedPrice = -1;
-        this.olderUsedPrices = new ArrayList<>();
-        this.pegi = new ArrayList<>();
-        this.new_ID = null;
-        this.digital_ID = null;
-        this.used_ID = null;
-        this.genres = new ArrayList<>();
-        this.officialSite = null;
-        this.players = null;
-        this.releaseDate = null;
+        mkdir();
+        updateCover(body);
+        updateGallery(body);
+    }
+
+    public String getTitle() {
+        return title;
+    }
+
+    public String getURL() {
+        return url;
+    }
+
+    public String getPublisher() {
+        return publisher;
+    }
+
+    public String getPlatform() {
+        return platform;
+    }
+
+    public double getNewPrice() {
+        return newPrice;
+    }
+
+    public List<Double> getOlderNewPrices() {
+        return olderNewPrices;
+    }
+
+    public double getUsedPrice() {
+        return usedPrice;
+    }
+
+    public List<Double> getOlderUsedPrices() {
+        return olderUsedPrices;
+    }
+
+    public List<String> getPegi() {
+        return pegi;
+    }
+
+    public String getNew_ID() {
+        return new_ID;
+    }
+
+    public String getUsed_ID() {
+        return used_ID;
+    }
+
+    public String getDigital_ID() {
+        return digital_ID;
+    }
+
+    public String getPresell_ID() {
+        return presell_ID;
     }
     
-    public Game (String url) throws IOException
-    {
-        // init attributes 
-        this();       
+    public String getID () {
+        if ( new_ID != null )
+            return new_ID;
+        if ( digital_ID != null )
+            return digital_ID;
+        if ( presell_ID != null )
+            return presell_ID;
+        return null;
+    }
+
+    public List<String> getGenres() {
+        return genres;
+    }
+
+    public String getOfficialSite() {
+        return officialSite;
+    }
+
+    public String getPlayers() {
+        return players;
+    }
+
+    public String getReleaseDate() {
+        return releaseDate;
+    }
+
+    public List<Promo> getPromo() {
+        return promo;
+    }
+
+    public String getDescription() {
+        return description;
+    }
+
+    @Override
+    public int hashCode() {
+        int hash = 7;
+        hash = 79 * hash + Objects.hashCode(this.url);
+        return hash;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (obj == null) {
+            return false;
+        }
+        if (getClass() != obj.getClass()) {
+            return false;
+        }
+        final Game other = (Game) obj;
+        return Objects.equals(this.url, other.url);
+    }
+    
+    @Override
+    public int compareTo(Game game) {
+        return this.getTitle().compareTo( game.getTitle() );
+    }
+    
+    @Override
+    public String toString() {
+        return "Game {\n" + " title = " + title + "\n url = " + url + "\n publisher = " + publisher + "\n platform = " + platform + "\n newPrice = " + newPrice + "\n olderNewPrices = " + olderNewPrices + "\n usedPrice = " + usedPrice + "\n olderUsedPrices = " + olderUsedPrices + "\n pegi = " + pegi + "\n new_ID = " + new_ID + "\n used_ID = " + used_ID + "\n digital_ID = " + digital_ID + "\n presell_ID = " + presell_ID + "\n genres = " + genres + "\n officialSite = " + officialSite + "\n players = " + players + "\n releaseDate = " + releaseDate + "\n promo = " + promo + "\n description {\n" + description + "}\n}";
+    }
+    
+    
+    /**
+     * This function set these attributes:
+     * title, publisher, platform 
+     * 
+     * @param prodTitle
+     * The function accept any Element but, it would be
+     * correct to pass directly an Element of class "prodTitle"
+     */
+    private boolean updateMainInfo (Element prodTitle) {
         
-        // 1. GET INFORMATION FROM THE WEBSITE
-        
-        Document html = null;
-        
-        try {
-            html = Jsoup.connect(url).get();
-            Log.info("Game", "downloaded HTML", url);
-        } catch (IOException e){
-            Log.error("Game", "Socket Timeout Exception");
-            return;
+        // if the element hasn't got the class name "prodTitle" 
+        if ( !prodTitle.className().equals("prodTitle") )
+        {
+            // search for a tag with this class name
+            if ( prodTitle.getElementsByClass("prodTitle").isEmpty() )
+                return false;
+            
+            prodTitle = prodTitle.getElementsByClass("prodTitle").get(0);
         }
         
-        Element body = html.body();
-        Element prodMain = body.getElementById("prodMain");
-        
-        // if the page doesn't exist
-        if ( prodMain == null ){
-            Log.error("Game", "page doesn't exist", url);
-            return;
-        }
-        
-        Element mainInfo = prodMain.getElementsByClass("mainInfo").get(0);
-        
-        // "mainInfo" contains: title, publisher, platform, vote, voting users
-        Element prodTitle = mainInfo.getElementsByClass("prodTitle").get(0);        
         this.title = prodTitle.getElementsByTag("h1").text();
         this.publisher = prodTitle.getElementsByTag("strong").text();
         this.platform = url.split("/")[3];
-        this.url = url;       
         
-        // "prodRightBlock" contains: prices, pegi, id, genre, release date, availability, addToCard
-        Element prodRightBlock = prodMain.getElementsByClass("prodRightBlock").get(0);        
-        Element buySection = prodRightBlock.getElementsByClass("buySection").get(0);
+        return true;
+    }
+    
+    /**
+     * This function set these attributes:
+     * genres, IDs, officialSite, players, releaseDate
+     * 
+     * @param addedDet
+     * The function accept any Element but, it would be
+     * correct to pass directly an Element of id "addedDet"
+     */
+    private boolean updateMetadata (Element addedDet) {
         
-        for ( Element singleVariantDetails : buySection.getElementsByClass("singleVariantDetails") )
+        // if the element hasn't got the id name "addedDet" 
+        if ( !addedDet.id().equals("addedDet") )
         {
-            Element singleVariantText = singleVariantDetails.getElementsByClass("singleVariantText").get(0);                
-            String price = null;
-
-            if ( singleVariantText.getElementsByClass("variantName").get(0).text().equals("Nuovo") )
-            {
-                price = singleVariantText.getElementsByClass("prodPriceCont").get(0).text();
-                this.newPrice = stringToPrice(price);
-
-                for ( Element olderPrice : singleVariantText.getElementsByClass("olderPrice") ){
-                    price = olderPrice.text();
-                    this.olderNewPrices.add( stringToPrice(price) );
-                }
-            }
-
-            if ( singleVariantText.getElementsByClass("variantName").get(0).text().equals("Usato") )
-            {                
-                price = singleVariantText.getElementsByClass("prodPriceCont").get(0).text();
-                this.usedPrice = stringToPrice(price);
-
-                for ( Element olderPrice : singleVariantText.getElementsByClass("olderPrice") ){                    
-                    price = olderPrice.text();
-                    this.olderUsedPrices.add( stringToPrice(price) );
-                }
-            }
+            // search for a tag with this id name
+            addedDet = addedDet.getElementById("addedDet");
+            
+            if ( addedDet == null )
+                return false;
         }
         
-        // "addedDet" contains: pegi, IDs, Genres, Official Site, Players, ReleaseDate
-        Element addedDet = prodRightBlock.getElementById("addedDet");
+        this.genres = new ArrayList<>();
         
-        
-        if ( !addedDet.getElementsByClass("ageBlock").isEmpty() )
-        {
-            // cycle is totally useless, is just for performance
-            Element ageBlock = addedDet.getElementsByClass("ageBlock").get(0);
-
-            // set PEGI
-            // to replace with getElementByClass StartingWith
-            for ( Element e : ageBlock.getAllElements() )
-            {
-                String str = e.attr("class");
-
-                if ( str.equals("pegi18") ) { this.pegi.add("pegi18"); continue; }
-                if ( str.equals("pegi16") ) { this.pegi.add("pegi16"); continue; }
-                if ( str.equals("pegi12") ) { this.pegi.add("pegi12"); continue; }
-                if ( str.equals("pegi7") )  { this.pegi.add("pegi7"); continue; }
-                if ( str.equals("pegi3") )  { this.pegi.add("pegi3"); continue; }
-
-                if ( str.equals("ageDescr BadLanguage") )   { this.pegi.add("bad-language"); continue; }
-                if ( str.equals("ageDescr violence") )      { this.pegi.add("violence"); continue; }
-                if ( str.equals("ageDescr online") )        { this.pegi.add("online"); continue; }
-                if ( str.equals("ageDescr sex") )           { this.pegi.add("sex"); continue; }
-                if ( str.equals("ageDescr fear") )          { this.pegi.add("fear"); continue; }
-                if ( str.equals("ageDescr drugs") )         { this.pegi.add("drugs"); continue; }
-                if ( str.equals("ageDescr discrimination") ){ this.pegi.add("discrimination"); continue; }
-                if ( str.equals("ageDescr gambling") )      { this.pegi.add("gambling"); }
-            }
-        }
-        
-        // set: IDs, Genres, Official Site, Players, Release Date
         for ( Element e : addedDet.getElementsByTag("p") )
         {            
             // important check to avoid IndexOutOfBound Exception
@@ -214,9 +282,8 @@ public class Game implements Serializable, Comparable<Game>{
                 }
                 
                 // set genre
-                if ( e.child(0).text().equals("Genere") ) {
-                    // System.out.println( e.child(1).text() );                    
-                    String strGenres = e.child(1).text();  // return example: Action/Adventure
+                if ( e.child(0).text().equals("Genere") ) {               
+                    String strGenres = e.child(1).text();           // return example: Action/Adventure
                     for ( String genre : strGenres.split("/") )
                         genres.add(genre);
                     continue;
@@ -224,263 +291,81 @@ public class Game implements Serializable, Comparable<Game>{
                 
                 // set official site
                 if ( e.child(0).text().equals("Sito Ufficiale") ) {
-                    // System.out.println( e.child(1) );
-                    // System.out.println( e.child(1).getElementsByTag("a").attr("href") );
                     this.officialSite = e.child(1).getElementsByTag("a").attr("href");
                     continue;
                 }
                 
                 // set the number of players
                 if ( e.child(0).text().equals("Giocatori") ) {
-                    // System.out.println( e.child(1).text() );
                     this.players = e.child(1).text();
                     continue;
                 }
                 
                 // set the release date
                 if ( e.child(0).text().equals("Rilascio") ) {
-                    //System.out.println( e.child(1).text() );
                     this.releaseDate = e.child(1).text();
                     this.releaseDate = releaseDate.replace(".","/");
                 }                
             }                      
-        }        
-        
-        // 2. CREATION OF CACHES FOLDERS
-        
-        /*
-            CACHES FOLDER STRUCTURE
-        
-            userData/                       contains all caches
-                |- xxx.tmp                  example of file
-                |- GameID/                  it's a folder with the name of the Game ID that contains all the data about a game
-                    |- cover.jpg            it's the cover of the game
-                    |- gallery/             it's the folder which contains all the images of the gallery
-                        |- imageXX.jpg      it's a image of the the game
-        */
-        
-        // create userData folder if doesn't exist
-        File directories = new File("userData");
-        if ( !directories.exists() ){
-            directories.mkdir();
-            Log.info("Game", "userData folder created");
         }
         
-        // creation of GameID folder
-        String path = null;
+        return true;
+    }
+    
+    /**
+     * This function set these attributes:
+     * newPrice, UsedPrice, olderNewPrices, olderUsedPrices 
+     * 
+     * @param buySection
+     * The function accept any Element but, it would be
+     * correct to pass directly an Element of class "buySection"
+     */
+    private boolean updatePrices (Element buySection) {
         
-        if ( new_ID != null )    { path = "userData/" + new_ID + "/"; }
-        if ( digital_ID != null ){ path = "userData/" + digital_ID + "/"; }
-        if ( presell_ID != null ){ path = "userData/" + presell_ID  + "/"; }
-        
-        try {
-            directories = new File(path);
-        } catch (Exception e) {
-            Log.error("Game", "error during creation of", path);
-            Log.error("Game", "the title with the error is", title);
-        }
-        
-        if ( !directories.exists() ){
-            directories.mkdir();
-            Log.info("Game", "folder created", path);
-        } else {
-            Log.warning("Game", "folder already exist", path);
-        }
-        
-        // --------------------------------------------
-        File tmp = new File( path+"/tmp" );
-        
-        if ( !tmp.exists() )
+        // if the element hasn't got the class name "buySection" 
+        if ( !buySection.className().equals("buySection") )
         {
-            BufferedWriter writer = new BufferedWriter(new FileWriter(path+"/tmp"));
-            writer.write(url);
-            writer.close();            
-            Log.info("Game", "tmp file created", path);
-        } else {
-            BufferedReader reader = new BufferedReader(new FileReader(path+"/tmp"));
-            String str = reader.readLine();
-            if ( str.equals(url) ){
-                Log.warning("Game", "file url already exist", path);
-            } else {
-               Log.error("Game", "two different products have the same ID");
-            }
-            reader.close();
-        }
-        // ----------------------------------------------------------
-        
-        // in "prodLeftBlock" section we can find the cover
-        Element prodLeftBlock = prodMain.getElementsByClass("prodLeftBlock").get(0);
-        String imageURL = prodLeftBlock.getElementsByClass("prodImg max").get(0).attr("href");
-        
-        // download the cover image if not already saved
-        File imageOffline = new File(path+"cover.jpg");
-        if( !imageOffline.exists() ){
-            try ( InputStream in = new URL(imageURL).openStream() ) {
-                Files.copy(in, Paths.get(path+"cover.jpg"));
-                Log.info("Game", "cover downloaded", imageURL);
-            } catch (IOException e) {
-                Log.error("Game", "cannot download the cover", imageURL);
-            }
-        } else {
-            Log.warning("Game", "cover already exist", imageURL);
+            // search for a tag with this class name
+            if ( buySection.getElementsByClass("buySection").isEmpty() )
+                return false;
+            
+            buySection = buySection.getElementsByClass("buySection").get(0);
         }
         
-        // in "mediaIn" section we can find the gallery
-        Elements mediaIn = prodMain.getElementsByClass("mediaIn");
-
-        // check if there are some medias
-        if ( !mediaIn.isEmpty() )
+        this.olderNewPrices = new ArrayList<>();
+        this.olderUsedPrices = new ArrayList<>();
+        
+        for ( Element singleVariantDetails : buySection.getElementsByClass("singleVariantDetails") )
         {
-            Elements mediaVideo = mediaIn.get(0).getElementsByClass("mediaVideo");
+            if ( singleVariantDetails.getElementsByClass("singleVariantText").isEmpty() )
+                return false;
+            
+            Element singleVariantText = singleVariantDetails.getElementsByClass("singleVariantText").get(0);
 
-            if ( !mediaVideo.isEmpty() ){                
-                // to take the video you must use Javascript
-                // it's possible to pick the URL but just from the browser
-            }            
-
-            Elements mediaImages = mediaIn.get(0).getElementsByClass("mediaImages");
-            if ( !mediaImages.isEmpty() )
+            if ( singleVariantText.getElementsByClass("variantName").get(0).text().equals("Nuovo") )
             {
-                // Create the folder if there are media files
-                path = path + "gallery/";
-                directories = new File(path);
-                if ( !directories.exists() ){
-                    directories.mkdir();
-                }
+                String price = singleVariantText.getElementsByClass("prodPriceCont").get(0).text();
+                this.newPrice = stringToPrice(price);
                 
-                Elements imagesURLs = mediaImages.get(0).getElementsByTag("a");
-                for ( Element e : imagesURLs )
-                {
-                    imageURL = e.attr("href");
-                    
-                    if ( imageURL.equals("") ){
-                        // this can handle very rare cases of malformed HTMLs
-                        // ex. https://www.gamestop.it/Varie/Games/95367/cambio-driving-force-per-volanti-g29-e-g920
-                        imageURL = e.getElementsByTag("img").get(0).attr("src");
-                    }
-                    
-                    String imageURI = path + imageURL.split("/")[6];
-                    
-                    imageOffline = new File(imageURI);
-                    
-                    if ( !imageOffline.exists() ){
-                        try ( InputStream in = new URL(imageURL).openStream() ) {
-                            Files.copy(in, Paths.get(imageURI));
-                            Log.info("Game", "image downloaded", imageURL.split("/")[6]);
-                        } catch (Exception ex) {
-                            Log.error("Game", "cannot download the image", imageURL.split("/")[6]);
-                        }
-                    } else {
-                        Log.warning("Game", "the image already exist", imageURL.split("/")[6]);
-                    }
+                for ( Element olderPrice : singleVariantText.getElementsByClass("olderPrice") ){
+                    price = olderPrice.text();
+                    this.olderNewPrices.add( stringToPrice(price) );
+                }
+            }
+
+            if ( singleVariantText.getElementsByClass("variantName").get(0).text().equals("Usato") )
+            {                
+                String price = singleVariantText.getElementsByClass("prodPriceCont").get(0).text();
+                this.usedPrice = stringToPrice(price);
+
+                for ( Element olderPrice : singleVariantText.getElementsByClass("olderPrice") ){                    
+                    price = olderPrice.text();
+                    this.olderUsedPrices.add( stringToPrice(price) );
                 }
             }
         }
         
-    }
-
-    public String getPlatform() {
-        return platform;
-    }
-
-    public double getNewPrice() {
-        return newPrice;
-    }
-
-    public double getUsedPrice() {
-        return usedPrice;
-    }
-
-    public String getReleaseDate() {
-        return releaseDate;
-    }
-
-    public String getTitle() {
-        return title;
-    }
-
-    @Override
-    public String toString() {
-        String str = "";
-        
-        str += "Title: " + title + "\n";
-        str += "Publisher: " + publisher + "\n";
-        str += "Platform: " + platform + "\n";
-        str += "URL: " + url + "\n";
-        
-        if ( newPrice > 0 ) {
-            str += "New Price: " + newPrice;
-        
-            for ( double price : olderNewPrices ){
-                str += "\tOld New Price: " + price + "\n";
-            }
-
-            if ( olderNewPrices.size() < 1 ) { str += "\n"; }        
-        }
-        
-        if ( usedPrice > 0 ) {
-            str += "Used Price: " + usedPrice;
-        
-            for ( double price : olderUsedPrices ){
-                str += "\tOld Used Price: " + price + "\n";
-            }
-            
-            if ( olderUsedPrices.size() < 1 ) { str += "\n"; }
-        }
-        
-        if ( new_ID != null )
-            str += "New ID: " + new_ID + "\n";
-        
-        if ( used_ID != null )
-            str += "Used ID: " + used_ID + "\n";
-        
-        if ( digital_ID != null )
-            str += "Digital ID: " + digital_ID + "\n";
-            
-        str += "PEGI: " + pegi.toString() + "\n";
-        str += "Genres:" + genres.toString() + "\n";        
-        
-        if ( this.officialSite != null )
-            str += "Official Site: " + officialSite + "\n";
-        
-        if ( this.players != null )
-            str += "Number of Players: " + players + "\n";
-        
-        str += "Release Date: " + releaseDate + "\n";
-        
-        return str;
-    }
-        
-    @Override
-    public boolean equals(Object obj)
-    {
-        if (this == obj) { return true; }
-        if (obj == null) { return false; }
-        if (getClass() != obj.getClass()) { return false; }
-        final Game other = (Game) obj;
-        
-        // NOTE: these two URLs are the same
-        // https://www.gamestop.it/PS3/Games/31910/persona-4-arena-limited-edition
-        // https://www.gamestop.it/PS3/Games/31910
-        
-        return Objects.equals(this.url, other.url);     // See the problem above
-    }
-    
-    @Override
-    public int hashCode() {
-        int hash = 7;
-        hash = 29 * hash + Objects.hashCode(this.url);
-        return hash;
-    }
-
-    @Override
-    public int compareTo(Game game) {
-        return this.title.compareTo(game.getTitle());
-    }
-    
-    public void update () {
-        // update the game using the URL
-        // to implement when all the attributes are defintive 
+        return true;
     }
     
     private double stringToPrice ( String price )
@@ -493,253 +378,242 @@ public class Game implements Serializable, Comparable<Game>{
         return Double.parseDouble(price);
     }
     
-    public org.w3c.dom.Element exportXML(org.w3c.dom.Document doc) throws ParserConfigurationException{
+    /**
+     * This function set these attributes:
+     * pegi
+     * 
+     * @param ageBlock
+     * The function accept any Element but, it would be
+     * correct to pass directly an Element of class "ageBlock"
+     */
+    private boolean updatePEGI (Element ageBlock) {
         
-        org.w3c.dom.Element game = doc.createElement("game");
-        
-        //Element Title
-        org.w3c.dom.Element elementTitle = doc.createElement("title");
-        elementTitle.setTextContent(this.title);
-        game.appendChild(elementTitle);
-        
-        //Element URL
-        org.w3c.dom.Element elementUrl = doc.createElement("url");
-        elementUrl.setTextContent(this.url);
-        game.appendChild(elementUrl);
-        
-        //Element Publisher
-        org.w3c.dom.Element elementPublisher = doc.createElement("publisher");
-        elementPublisher.setTextContent(this.publisher);
-        game.appendChild(elementPublisher);
-        
-        //Element Platform
-        org.w3c.dom.Element elementPlatform = doc.createElement("platform");
-        elementPlatform.setTextContent(this.platform);
-        game.appendChild(elementPlatform);
-        
-        //Element NewPrice
-        if(this.newPrice > -1){
-            org.w3c.dom.Element elementNewPrice = doc.createElement("newPrice");
-            elementNewPrice.setTextContent(String.valueOf(this.newPrice));
-            game.appendChild(elementNewPrice); 
-        }
-        
-        //Element OlderNewPrices
-        if(this.olderNewPrices.size() > 0){
-            org.w3c.dom.Element elementOlderNewPrice = doc.createElement("olderNewPrices");
+        // if the element hasn't got the class name "ageBlock" 
+        if ( !ageBlock.className().equals("ageBlock") )
+        {
+            // search for a tag with this class name
+            if ( ageBlock.getElementsByClass("ageBlock").isEmpty() )
+                return false;
             
-            for(Double price : this.olderNewPrices){
-                org.w3c.dom.Element elementPrice = doc.createElement("price");
-                elementPrice.setTextContent(price.toString());
-                elementOlderNewPrice.appendChild(elementPrice);
-            }
-            
-            game.appendChild(elementOlderNewPrice);
+            ageBlock = ageBlock.getElementsByClass("ageBlock").get(0);
         }
         
-        //Element UsedPrice
-        if(this.usedPrice > -1){
-            org.w3c.dom.Element elementUsedPrice = doc.createElement("usedPrice");
-            elementUsedPrice.setTextContent(String.valueOf(this.usedPrice));
-            game.appendChild(elementUsedPrice); 
+        // init the array
+        this.pegi = new ArrayList<>();
+        
+        for ( Element e : ageBlock.getAllElements() )
+        {
+            String str = e.attr("class");
+
+            if ( str.equals("pegi18") ) { this.pegi.add("pegi18"); continue; }
+            if ( str.equals("pegi16") ) { this.pegi.add("pegi16"); continue; }
+            if ( str.equals("pegi12") ) { this.pegi.add("pegi12"); continue; }
+            if ( str.equals("pegi7") )  { this.pegi.add("pegi7"); continue; }
+            if ( str.equals("pegi3") )  { this.pegi.add("pegi3"); continue; }
+
+            if ( str.equals("ageDescr BadLanguage") )   { this.pegi.add("bad-language"); continue; }
+            if ( str.equals("ageDescr violence") )      { this.pegi.add("violence"); continue; }
+            if ( str.equals("ageDescr online") )        { this.pegi.add("online"); continue; }
+            if ( str.equals("ageDescr sex") )           { this.pegi.add("sex"); continue; }
+            if ( str.equals("ageDescr fear") )          { this.pegi.add("fear"); continue; }
+            if ( str.equals("ageDescr drugs") )         { this.pegi.add("drugs"); continue; }
+            if ( str.equals("ageDescr discrimination") ){ this.pegi.add("discrimination"); continue; }
+            if ( str.equals("ageDescr gambling") )      { this.pegi.add("gambling"); }
         }
         
-        //Element OlderUsedPrices
-        if(this.olderUsedPrices.size() > 0){
-            org.w3c.dom.Element elementOlderUsedPrice = doc.createElement("olderUsedPrices");
-            
-            for(Double price : this.olderUsedPrices){
-                org.w3c.dom.Element elementPrice = doc.createElement("price");
-                elementPrice.setTextContent(price.toString());
-                elementOlderUsedPrice.appendChild(elementPrice);
-            }
-            
-            game.appendChild(elementOlderUsedPrice);
-        }
-        
-        //Element Pegi
-        org.w3c.dom.Element elementPegiList = doc.createElement("pegiList");
-        for(String p : this.pegi){
-            org.w3c.dom.Element elementPegi = doc.createElement("pegi");
-            elementPegi.setTextContent(p);
-            elementPegiList.appendChild(elementPegi);
-        }
-        game.appendChild(elementPegiList);
-        
-        //Element NewId
-        if(this.new_ID != null){
-            org.w3c.dom.Element elementNewId = doc.createElement("newId");
-            elementNewId.setTextContent(this.new_ID);
-            game.appendChild(elementNewId);
-        }
-        
-        //Element DigitalId
-        if(this.digital_ID != null){
-            org.w3c.dom.Element elementDigitalId = doc.createElement("digitalId");
-            elementDigitalId.setTextContent(this.digital_ID);
-            game.appendChild(elementDigitalId);
-        }
-        
-        //Element UsedId
-        if(this.used_ID != null){
-            org.w3c.dom.Element elementUsedId = doc.createElement("usedId");
-            elementUsedId.setTextContent(this.used_ID);
-            game.appendChild(elementUsedId);
-        }
-        
-        //Element PresellId
-        if(this.presell_ID!= null){
-            org.w3c.dom.Element elementPresellId = doc.createElement("presellId");
-            elementPresellId.setTextContent(this.presell_ID);
-            game.appendChild(elementPresellId);
-        }
-        
-        
-        //Element Genres
-        if(this.genres.size() > 0){
-            org.w3c.dom.Element elementGenres = doc.createElement("genres");
-            
-            for(String genre : this.genres){
-                org.w3c.dom.Element elementGenre = doc.createElement("genre");
-                elementGenre.setTextContent(genre);
-                elementGenres.appendChild(elementGenre);
-            }
-            
-            game.appendChild(elementGenres);
-        }
-        
-        //Element OfficialSite
-        if(this.officialSite != null){
-            org.w3c.dom.Element elementOfficialSite = doc.createElement("officialSite");
-            elementOfficialSite.setTextContent(this.officialSite);
-            game.appendChild(elementOfficialSite);
-        }
-        
-        //Element Players
-        if(this.players != null){
-            org.w3c.dom.Element elementPlayers = doc.createElement("players");
-            elementPlayers.setTextContent(this.players);
-            game.appendChild(elementPlayers);
-        }
-        
-        //Element ReleaseDate
-        org.w3c.dom.Element elementReleaseDate = doc.createElement("releaseDate");
-        elementReleaseDate.setTextContent(this.releaseDate);
-        game.appendChild(elementReleaseDate);
-        
-        return game;
+        return true;
     }
     
-    public static Game importXML(org.w3c.dom.Element element){
-        Game game = new Game();
+    /**
+     * This function is in BETA <br>
+     * 
+     * This function set these attributes:
+     * promo
+     * 
+     * @param bonusBlock
+     * The function accept any Element but, it would be
+     * correct to pass directly an Element of class "bonusBlock"
+     */
+    private boolean updateBonus (Element bonusBlock) {
         
-        //If Element is not a "game"
-        if(!element.getNodeName().equals("game")) return null;
-        
-        game.title = element.getElementsByTagName("title").item(0).getTextContent().trim();
-        game.url = element.getElementsByTagName("url").item(0).getTextContent().trim();
-        game.publisher = element.getElementsByTagName("publisher").item(0).getTextContent().trim();
-        game.platform = element.getElementsByTagName("platform").item(0).getTextContent().trim();
-        
-        //NewPrice
-        NodeList testNewPrice = element.getElementsByTagName("newPrice");
-        if(testNewPrice.getLength() > 0){
-            game.newPrice = Double.parseDouble(testNewPrice.item(0).getTextContent().trim());
-        }
-        
-        //OlderNewPrices
-        NodeList testOlderNewPrices = element.getElementsByTagName("olderNewPrices");
-        if(testOlderNewPrices.getLength() > 0){
-            org.w3c.dom.Element elementOlderNewPrices = (org.w3c.dom.Element)testOlderNewPrices.item(0);
-            NodeList listOlderNewPrices = elementOlderNewPrices.getElementsByTagName("price");
+        // if the element hasn't got the id name "bonusBlock" 
+        if ( !bonusBlock.id().equals("bonusBlock") )
+        {
+            // search for a tag with this id name
+            bonusBlock = bonusBlock.getElementById("bonusBlock");
             
-            for(int i = 0; i<listOlderNewPrices.getLength(); i++){
-                org.w3c.dom.Node elementPrice = listOlderNewPrices.item(i);        
-                game.olderNewPrices.add(Double.parseDouble(elementPrice.getTextContent().trim()));
-            }
+            if ( bonusBlock == null )
+                return false;
+        }
+        
+        promo = new ArrayList<>();
+        
+        for ( Element prodSinglePromo : bonusBlock.getElementsByClass("prodSinglePromo") )
+        {            
+            Elements h4 = prodSinglePromo.getElementsByTag("h4");
+            Elements p = prodSinglePromo.getElementsByTag("p");
             
-        }
-        
-        //UsedPrice
-        NodeList testUsedPrice = element.getElementsByTagName("usedPrice");
-        if(testUsedPrice.getLength() > 0){
-            game.usedPrice = Double.parseDouble(testUsedPrice.item(0).getTextContent().trim());
-        }
-        
-        //OlderUsedPrices
-        NodeList testOlderUsedPrices = element.getElementsByTagName("olderUsedPrices");
-        if(testOlderUsedPrices.getLength() > 0){
-            org.w3c.dom.Element elementOlderUsedPrices = (org.w3c.dom.Element)testOlderUsedPrices.item(0);
-            NodeList listOlderUsedPrices = elementOlderUsedPrices.getElementsByTagName("price");
+            // possible NullPointerException
+            promo.add( new Promo( h4.text(), p.text() ) );
             
-            for(int i = 0; i<listOlderUsedPrices.getLength(); i++){
-                org.w3c.dom.Node elementPrice = listOlderUsedPrices.item(i);        
-                game.olderUsedPrices.add(Double.parseDouble(elementPrice.getTextContent().trim()));
-            }
-            
+            // per il momento non voglio correggere questo errore perchè
+            // mi servono molti casi di test
         }
         
-        //Pegi
-        org.w3c.dom.Element elementPegiList = (org.w3c.dom.Element)element.getElementsByTagName("pegiList").item(0);
-        NodeList listPegi = elementPegiList.getElementsByTagName("pegi");
-        for(int i = 0; i<listPegi.getLength(); i++){
-            org.w3c.dom.Node elementPegi = listPegi.item(i);
-            game.pegi.add(elementPegi.getTextContent());
-        }
-        
-        //NewID
-        NodeList testNewId = element.getElementsByTagName("newId");
-        if(testNewId.getLength() > 0){
-            game.new_ID = testNewId.item(0).getTextContent().trim();
-        }
-        
-        //DigitalID
-        NodeList testDigitalId = element.getElementsByTagName("digitalId");
-        if(testDigitalId.getLength() > 0){
-            game.digital_ID = testDigitalId.item(0).getTextContent().trim();
-        }
-        
-        //UsedID
-        NodeList testUsedId = element.getElementsByTagName("usedId");
-        if(testUsedId.getLength() > 0){
-            game.used_ID = testUsedId.item(0).getTextContent().trim();
-        }
-        
-        //PresellID
-        NodeList testPresellId = element.getElementsByTagName("presellId");
-        if(testPresellId.getLength() > 0){
-            game.presell_ID = testPresellId.item(0).getTextContent().trim();
-        }
-        
-        //Genres
-        NodeList testGenres = element.getElementsByTagName("genres");
-        if(testGenres.getLength() > 0){
-            org.w3c.dom.Element elementGenres = (org.w3c.dom.Element)testGenres.item(0);
-            NodeList listGenres = elementGenres.getElementsByTagName("genre");
-            
-            for(int i = 0; i<listGenres.getLength(); i++){
-                org.w3c.dom.Node elementGenre = listGenres.item(i);        
-                game.genres.add(elementGenre.getTextContent().trim());
-            }
-            
-        }
-        
-        //OfficialSite
-        NodeList testOfficialSite= element.getElementsByTagName("officialSite");
-        if(testOfficialSite.getLength() > 0){
-            game.officialSite = testOfficialSite.item(0).getTextContent().trim();
-        }
-        
-        //Players
-        NodeList testPlayers = element.getElementsByTagName("players");
-        if(testPlayers.getLength() > 0){
-            game.players = testPlayers.item(0).getTextContent().trim();
-        }
-        
-        game.releaseDate = element.getElementsByTagName("releaseDate").item(0).getTextContent();
-        
-        
-        return game;
+        return true;
     }
+    
+    /**
+     * This function set these attributes:
+     * description
+     * 
+     * @param prodDesc
+     * The function accept any Element but, it would be
+     * correct to pass directly an Element of id "prodDesc"
+     */
+    private boolean updateDescription (Element prodDesc) {
+        
+        // if the element hasn't got the id name "addedDet" 
+        if ( !prodDesc.id().equals("prodDesc") )
+        {
+            // search for a tag with this id name
+            prodDesc = prodDesc.getElementById("prodDesc");
+            
+            if ( prodDesc == null )
+                return false;
+        }
+        
+        this.description = new String();
+        
+        for ( Element e : prodDesc.getElementsByTag("p") ){
+            for ( TextNode tn : e.textNodes() ){
+                description += tn.text()+"\n";
+            }
+        }
+        
+        return true;
+    }
+    
+    /**
+     * Create the game folder
+     */
+    private void mkdir()
+    {
+        // create userData folder if doesn't exist
+        File dir = new File( PATH );
+        
+        if ( !dir.exists() ){
+            dir.mkdir();
+        }        
+        
+        // create the game folder if doesn't exist
+        dir = new File( PATH + getID() );
+        
+        if ( !dir.exists() ){
+            dir.mkdir();
+        }
+    }
+    
+    /**
+     * 
+     * @param prodImgMax
+     */
+    private void updateCover (Element prodImgMax) {
+        
+        // if the element hasn't got the class name "prodImg max" 
+        if ( !prodImgMax.className().equals("prodImg max") )
+        {
+            // search for a tag with this class name
+            if ( prodImgMax.getElementsByClass("prodImg max").isEmpty() )
+                return;
+            
+            prodImgMax = prodImgMax.getElementsByClass("prodImg max").get(0);
+        }
+        
+        String imgUrl = prodImgMax.attr("href");
+        String imgPath = PATH + getID();
+        
+        try {
+            downloadImage("cover.jpg", imgUrl, imgPath);
+        } catch (IOException ex) {
+            Log.error("Game", "cannot download cover", imgUrl);
+        }
+    }
+    
+    /**
+     * 
+     * @param mediaImages
+     */
+    private void updateGallery (Element mediaImages) {
+        
+        // if the element hasn't got the class name "mediaImages" 
+        if ( !mediaImages.className().equals("mediaImages") )
+        {
+            // search for a tag with this class name
+            if ( mediaImages.getElementsByClass("mediaImages").isEmpty() )
+                return;
+            
+            mediaImages = mediaImages.getElementsByClass("mediaImages").get(0);
+        }
+        
+        String imgPath = PATH + getID() + "/" + "gallery";
+        
+        File dir = new File (imgPath);
+        if ( !dir.exists() )
+            dir.mkdir();
+        
+        for ( Element e : mediaImages.getElementsByTag("a") )
+        {            
+            String imgUrl = e.attr("href");
+            if ( imgUrl.equals("") ){
+                // this can handle very rare cases of malformed HTMLs
+                // ex. https://www.gamestop.it/Varie/Games/95367/cambio-driving-force-per-volanti-g29-e-g920
+                imgUrl = e.getElementsByTag("img").get(0).attr("src");
+            }
+            
+            String imgName = imgUrl.split("/")[6];
+            
+            try {
+                downloadImage(imgName, imgUrl, imgPath);
+            } catch (IOException ex) {
+                Log.error("Game", "cannot download cover", imgUrl);
+            }
+        }
+               
+    }
+    
+    private void downloadImage ( String name, String imgUrl, String imgPath ) throws MalformedURLException, IOException
+    {
+        imgPath = imgPath + "/" + name;
+        File f = new File (imgPath);
+        
+        // if the image already exists
+        if ( f.exists() ){
+            Log.warning("Game", "img already exists", imgPath);
+            return;
+        }
+        
+        InputStream in = new URL(imgUrl).openStream();
+        Files.copy(in, Paths.get(imgPath));
+        Log.info("Game", "image downloaded", imgUrl);
+    }
+
+    /**
+     * 
+     * @throws IOException 
+     */
+    public void update () throws IOException {
+        
+        Document html = Jsoup.connect(url).get();        
+        Element body = html.body();
+        
+        updateMetadata(body);        
+        updatePrices(body);
+        updateBonus(body);
+    }
+    
+    
+    
+    
     
 }

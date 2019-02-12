@@ -2,6 +2,11 @@ package gamestopapp;
 
 // see https://en.wikipedia.org/wiki/ANSI_escape_code
 
+import java.io.File;
+import java.io.FileWriter;
+import java.io.PrintWriter;
+
+
 public class Log {
     
     private static final int MAX_MESSAGE_LENGTH = 40;
@@ -81,4 +86,29 @@ public class Log {
         return message;
     }
     
+    public static void crash ( Exception e, String src ) {
+        
+        try {
+            
+            // create log directory if doesn't exist
+            File directory = new File("log");
+            if ( !directory.exists() )
+                directory.mkdir();
+
+            // save the information of the crash in the log                
+            String fileName = "log/"+System.currentTimeMillis()+".txt";
+            FileWriter fw = new FileWriter (fileName, true);
+            PrintWriter pw = new PrintWriter (fw);
+
+            pw.write(src+"\n\n");
+            e.printStackTrace (pw);
+            fw.close();
+
+            Log.error("Log", "Crash Log file created");
+                
+        } catch (Exception ex) {
+            Log.error("Log", "Failed to create crash log");
+        }
+        
+    }
 }
