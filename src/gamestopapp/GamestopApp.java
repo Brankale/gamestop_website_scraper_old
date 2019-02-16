@@ -17,11 +17,21 @@ public class GamestopApp {
     public static void main(String[] args) {
         
         String url = "https://www.gamestop.it/PS4/Games/110143/detroit-become-human";
+        url = "https://www.gamestop.it/PS4/Games/101550/persona-5-steelbook-launch-edition";
+        url = "https://www.gamestop.it/Switch/Games/103312/nintendo-switch-color-neon";
         
         try {
             
-            Game g1 = new Game(url);
-            System.out.println( g1.toString() );
+            for ( int i=0; i<200000; ++i ){
+                
+                try {
+                    Log.info("GamestopApp", "Downloading Game [ID=" + i + "] ..." );
+                    Game g1 = new Game( "http://www.gamestop.it/Platform/Games/"+i );
+                } catch (Exception ex) {
+                    Log.error("GamestopApp", "C'è stato un errore grave");
+                }
+            }
+            
                             
         } catch (Exception ex) {
             Log.crash(ex, url);

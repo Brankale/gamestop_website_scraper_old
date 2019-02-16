@@ -6,10 +6,14 @@ public class Promo {
     
     private String header;
     private String validity;
+    private String message;
+    private String messageURL;
 
-    public Promo(String header, String validity) {
+    public Promo(String header, String validity, String message, String messageURL) {
         this.header = header;
         this.validity = validity;
+        this.message = message;
+        this.messageURL = messageURL;
     }
 
     public String getHeader() {
@@ -18,6 +22,14 @@ public class Promo {
 
     public String getValidity() {
         return validity;
+    }
+
+    public String getMessage() {
+        return message;
+    }
+
+    public String getMessageURL() {
+        return messageURL;
     }
 
     @Override
