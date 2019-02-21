@@ -5,6 +5,13 @@
  */
 package gamestopapp;
 
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.FileStore;
+import java.nio.file.Files;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
 /**
  *
  * @author android
@@ -16,27 +23,77 @@ public class GamestopApp {
      */
     public static void main(String[] args) {
         
+        /*
         String url = "https://www.gamestop.it/PS4/Games/110143/detroit-become-human";
         url = "https://www.gamestop.it/PS4/Games/101550/persona-5-steelbook-launch-edition";
         url = "https://www.gamestop.it/Switch/Games/103312/nintendo-switch-color-neon";
         
         try {
+            Game g = new Game(url);
+        } catch (IOException ex) {
+            Logger.getLogger(GamestopApp.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        */
+        
+        //downloadAll();
+        
+        
+        Games games = importAll();        
+        System.out.println( games.toString() );
+        
+    }
+    
+    public static Games importAll () {
+        
+        Games games = new Games();
+        
+        File f = new File("userData/");
+        
+        if ( f.exists() ){
+            File [] files = f.listFiles();
             
-            for ( int i=0; i<200000; ++i ){
-                
+            for ( int i=0; i<files.length; ++i ){
+                if ( files[i].isDirectory() ){
+                    
+                    File info = new File ( files[i].getPath() + "/data.dat" );
+                    
+                    if ( info.exists() ){
+                        try {
+                            System.out.println( info.getCanonicalPath() );
+                            games.add( Game.importBinary( info.getPath() ) );
+                        } catch (IOException ex) {
+                            Logger.getLogger(GamestopApp.class.getName()).log(Level.SEVERE, null, ex);
+                        } catch (ClassNotFoundException ex) {
+                            Logger.getLogger(GamestopApp.class.getName()).log(Level.SEVERE, null, ex);
+                        }
+                    }
+                    
+                }
+            }
+        }
+        
+        return games;        
+    }
+    
+    public static void downloadAll () {
+        
+        try {
+            
+            for ( int i=0; i<200000; ++i )
+            {                
                 try {
                     Log.info("GamestopApp", "Downloading Game [ID=" + i + "] ..." );
-                    Game g1 = new Game( "http://www.gamestop.it/Platform/Games/"+i );
+                    Game game = new Game( "http://www.gamestop.it/Platform/Games/"+i );
+                    game.exportBinary();
                 } catch (Exception ex) {
-                    Log.error("GamestopApp", "C'è stato un errore grave");
+                    Log.error("GamestopApp", "Impossibile scaricare gioco");
                 }
             }
             
                             
         } catch (Exception ex) {
-            Log.crash(ex, url);
+            Log.crash(ex, "Fatal Error");
         }
-        
         
     }
     

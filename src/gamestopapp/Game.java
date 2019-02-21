@@ -1,8 +1,15 @@
 package gamestopapp;
 
+import java.io.EOFException;
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.io.Serializable;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.nio.file.Files;
@@ -16,9 +23,9 @@ import org.jsoup.nodes.Element;
 import org.jsoup.nodes.TextNode;
 import org.jsoup.select.Elements;
 
-public class Game implements Comparable<Game> {
+public class Game implements Comparable<Game>, Serializable {
 
-    private final String PATH = "userData/";        // check for another location
+    private static final String PATH = "userData/";
 
     private String id;
     private String title;
@@ -37,30 +44,17 @@ public class Game implements Comparable<Game> {
     private String description;
     private boolean available;
 
-    /**
-     * This function returns a Game object
-     *
-     * @param url url of the game
-     * @throws java.io.IOException
-     */
     public Game(String url) throws IOException {
         
         this.id = url.split("/")[5];
         
         Document html = Jsoup.connect(url).get();
         Element body = html.body();
-
-        if (updateMainInfo(body) == false) {
-            throw new GameException();
-        }
-
-        if (updateMetadata(body) == false) {
-            throw new GameException();
-        }
-
-        if (updatePrices(body) == false) {
-            throw new GameException();
-        }
+        
+        // these three methods are necessary to create a Game
+        updateMainInfo(body);
+        updateMetadata(body);
+        updatePrices(body);
 
         // the following information are not necessary to create a game
         updatePEGI(body);
@@ -135,6 +129,10 @@ public class Game implements Comparable<Game> {
     public String getDescription() {
         return description;
     }
+    
+    public String getGamePath () {
+        return PATH + getID() + "/";
+    }
 
     public boolean hasPromo() {
         return !promo.isEmpty();
@@ -173,42 +171,54 @@ public class Game implements Comparable<Game> {
 
     @Override
     public String toString() {
-        return "Game {\n" +"ID = " + id + "\ntitle = " + title + "\n publisher = " + publisher + "\n platform = " + platform + "\n newPrice = " + newPrice + "\n olderNewPrices = " + olderNewPrices + "\n usedPrice = " + usedPrice + "\n olderUsedPrices = " + olderUsedPrices + "\n pegi = " + pegi + "\n ID = " + getID() + "\n genres = " + genres + "\n officialSite = " + officialSite + "\n players = " + players + "\n releaseDate = " + releaseDate + "\n promo = " + promo + "\n description {\n" + description + "}\n}";
+        return "Game {\n" +" ID = " + id + "\n title = " + title + "\n publisher = " + publisher + "\n platform = " + platform + "\n newPrice = " + newPrice + "\n olderNewPrices = " + olderNewPrices + "\n usedPrice = " + usedPrice + "\n olderUsedPrices = " + olderUsedPrices + "\n pegi = " + pegi + "\n ID = " + getID() + "\n genres = " + genres + "\n officialSite = " + officialSite + "\n players = " + players + "\n releaseDate = " + releaseDate + "\n promo = " + promo + "\n description {\n" + description + "}\n}";
     }
 
     /**
-     * This function set these attributes: title, publisher, platform
-     *
-     * @param prodTitle The function accept any Element but, it would be correct
-     * to pass directly an Element of class "prodTitle"
+     * returned value checked
+     * @param prodTitle
+     * @return 
      */
     private boolean updateMainInfo(Element prodTitle) {
+        
+        boolean changes = false;
 
         // if the element hasn't got the class name "prodTitle" 
         if (!prodTitle.className().equals("prodTitle")) {
             // search for a tag with this class name
             if (prodTitle.getElementsByClass("prodTitle").isEmpty()) {
-                return false;
+                throw new GameException();
             }
 
             prodTitle = prodTitle.getElementsByClass("prodTitle").get(0);
         }
-
+        
+        String tmp = title;
         this.title = prodTitle.getElementsByTag("h1").text();
+        if ( !title.equals(tmp) )
+            changes = true;
+        
+        tmp = publisher;
         this.publisher = prodTitle.getElementsByTag("strong").text();
+        if ( !publisher.equals(tmp) )
+            changes = true;
+        
+        tmp = platform;
         this.platform = prodTitle.getElementsByTag("p").get(0).getElementsByTag("span").text();
+        if ( !platform.equals(tmp) )
+            changes = true;
 
-        return true;
+        return changes;
     }
-
+    
     /**
-     * This function set these attributes: genres, IDs, officialSite, players,
-     * releaseDate
-     *
-     * @param addedDet The function accept any Element but, it would be correct
-     * to pass directly an Element of id "addedDet"
+     * returned value checked
+     * @param addedDet
+     * @return 
      */
     private boolean updateMetadata(Element addedDet) {
+        
+        boolean changes = false;
 
         // if the element hasn't got the id name "addedDet" 
         if (!addedDet.id().equals("addedDet")) {
@@ -216,10 +226,14 @@ public class Game implements Comparable<Game> {
             addedDet = addedDet.getElementById("addedDet");
 
             if (addedDet == null) {
-                return false;
+                throw new GameException();
             }
         }
-
+        
+        List<String> genresCopy = genres;
+        if ( genresCopy == null )
+            genresCopy = new ArrayList<>();
+        
         this.genres = new ArrayList<>();
 
         for (Element e : addedDet.getElementsByTag("p")) {
@@ -274,59 +288,86 @@ public class Game implements Comparable<Game> {
 
                 // set official site
                 if (e.child(0).text().equals("Sito Ufficiale")) {
+                    String officialSiteCopy = officialSite;
                     this.officialSite = e.child(1).getElementsByTag("a").attr("href");
+                    if ( !officialSite.equals(officialSiteCopy) )
+                        changes = true;
                     continue;
                 }
 
                 // set the number of players
                 if (e.child(0).text().equals("Giocatori")) {
+                    String playersCopy = players;
                     this.players = e.child(1).text();
+                    if ( !players.equals(playersCopy) )
+                        changes = true;
                     continue;
                 }
 
                 // set the release date
                 if (e.child(0).text().equals("Rilascio")) {
+                    String releaseDateCopy = releaseDate;
                     this.releaseDate = e.child(1).text();
                     this.releaseDate = releaseDate.replace(".", "/");
+                    if ( !releaseDate.equals(releaseDateCopy) )
+                        changes = true;
                 }
             }
         }
+        
+        
+        if ( !genres.equals(genresCopy) )
+            changes = true;
 
-        return true;
+        return changes;
     }
 
     /**
-     * This function set these attributes:
-     * newPrice, UsedPrice, olderNewPrices, olderUsedPrices
-     *
-     * @param buySection The function accept any Element but, it would be
-     * correct to pass directly an Element of class "buySection"
+     * returned value checked
+     * @param buySection
+     * @return 
      */
     private boolean updatePrices(Element buySection) {
+        
+        boolean changes = false;
 
         // if the element hasn't got the class name "buySection" 
         if (!buySection.className().equals("buySection")) {
             // search for a tag with this class name
             if (buySection.getElementsByClass("buySection").isEmpty()) {
-                return false;
+                throw new GameException();
             }
 
             buySection = buySection.getElementsByClass("buySection").get(0);
         }
-
+        
+        List<Double> olderNewPricesCopy = olderNewPrices;
+        List<Double> olderUsedPricesCopy = olderUsedPrices;
+        
+        if ( olderNewPricesCopy == null )
+            olderNewPricesCopy = new ArrayList<>();
+        
+        if ( olderUsedPricesCopy == null )
+            olderUsedPricesCopy = new ArrayList<>();
+        
         this.olderNewPrices = new ArrayList<>();
         this.olderUsedPrices = new ArrayList<>();
 
         for (Element singleVariantDetails : buySection.getElementsByClass("singleVariantDetails")) {
+            
             if (singleVariantDetails.getElementsByClass("singleVariantText").isEmpty()) {
-                return false;
+                throw new GameException();
             }
 
             Element singleVariantText = singleVariantDetails.getElementsByClass("singleVariantText").get(0);
 
             if (singleVariantText.getElementsByClass("variantName").get(0).text().equals("Nuovo")) {
                 String price = singleVariantText.getElementsByClass("prodPriceCont").get(0).text();
+                
+                Double newPriceCopy = newPrice;
                 this.newPrice = stringToPrice(price);
+                if ( newPriceCopy != newPrice )
+                    changes = true;
 
                 for (Element olderPrice : singleVariantText.getElementsByClass("olderPrice")) {
                     price = olderPrice.text();
@@ -336,23 +377,43 @@ public class Game implements Comparable<Game> {
 
             if (singleVariantText.getElementsByClass("variantName").get(0).text().equals("Usato")) {
                 String price = singleVariantText.getElementsByClass("prodPriceCont").get(0).text();
+                
+                Double usedPriceCopy = usedPrice;
                 this.usedPrice = stringToPrice(price);
+                if ( usedPriceCopy != usedPrice )
+                    changes = true;
 
                 for (Element olderPrice : singleVariantText.getElementsByClass("olderPrice")) {
                     price = olderPrice.text();
                     this.olderUsedPrices.add(stringToPrice(price));
                 }
             }
-        }
+        }        
         
+        // sposta in un'altra funzione
         Element btnAddToCart = buySection.getElementById("btnAddToCart");
         if ( btnAddToCart != null ){            
             String style = btnAddToCart.attr("style");
-            if ( style.equals("display: block;") )
+            if ( style.equals("display: block;") ){
+                if ( available == false )
+                    changes = true;
+                
                 available = true;
-        }
+            } else {
+                if ( available == true )
+                    changes = true;
+                
+                available = false;
+            }
+        }            
+        
+        if ( !olderNewPricesCopy.equals(olderNewPrices) )
+            changes = true;
+        
+        if ( !olderUsedPricesCopy.equals(olderUsedPrices) )
+            changes = true;
 
-        return true;
+        return changes;
     }
 
     private double stringToPrice(String price) {
@@ -365,24 +426,29 @@ public class Game implements Comparable<Game> {
     }
 
     /**
-     * This function set these attributes: pegi
-     *
-     * @param ageBlock The function accept any Element but, it would be correct
-     * to pass directly an Element of class "ageBlock"
+     * returned value checked
+     * @param ageBlock
+     * @return 
      */
     private boolean updatePEGI(Element ageBlock) {
+        
+        boolean changes = false;
 
         // if the element hasn't got the class name "ageBlock" 
         if (!ageBlock.className().equals("ageBlock")) {
             // search for a tag with this class name
             if (ageBlock.getElementsByClass("ageBlock").isEmpty()) {
-                return false;
+                return changes;
             }
 
             ageBlock = ageBlock.getElementsByClass("ageBlock").get(0);
         }
 
         // init the array
+        List<String> pegiCopy = pegi;
+        if ( pegiCopy == null )
+            pegiCopy =  new ArrayList<>();
+        
         this.pegi = new ArrayList<>();
 
         for (Element e : ageBlock.getAllElements()) {
@@ -404,18 +470,20 @@ public class Game implements Comparable<Game> {
             if (str.equals("ageDescr gambling"))        { this.pegi.add("gambling"); }
         }
 
-        return true;
+        if ( !pegi.equals(pegiCopy) )
+            changes = true;
+        
+        return changes;
     }
 
     /**
-     * This function is in BETA <br>
-     *
-     * This function set these attributes: promo
-     *
-     * @param bonusBlock The function accept any Element but, it would be
-     * correct to pass directly an Element of class "bonusBlock"
+     * returned value checked
+     * @param bonusBlock
+     * @return 
      */
     private boolean updateBonus(Element bonusBlock) {
+        
+        boolean changes = false;
 
         // if the element hasn't got the id name "bonusBlock" 
         if (!bonusBlock.id().equals("bonusBlock")) {
@@ -423,10 +491,14 @@ public class Game implements Comparable<Game> {
             bonusBlock = bonusBlock.getElementById("bonusBlock");
 
             if (bonusBlock == null) {
-                return false;
+                return changes;
             }
         }
-
+        
+        List<Promo> promoCopy = promo;
+        if ( promoCopy == null )
+            promoCopy = new ArrayList<>();
+        
         promo = new ArrayList<>();
 
         for (Element prodSinglePromo : bonusBlock.getElementsByClass("prodSinglePromo")) {
@@ -445,17 +517,21 @@ public class Game implements Comparable<Game> {
             // per il momento non voglio correggere questo errore perchè
             // mi servono molti casi di test
         }
+        
+        if ( !promo.equals(promoCopy) )
+            changes = true;
 
-        return true;
+        return changes;
     }
 
     /**
-     * This function set these attributes: description
-     *
-     * @param prodDesc The function accept any Element but, it would be correct
-     * to pass directly an Element of id "prodDesc"
+     * returned value checked
+     * @param prodDesc
+     * @return 
      */
     private boolean updateDescription(Element prodDesc) {
+        
+        boolean changes = false;
 
         // if the element hasn't got the id name "addedDet" 
         if (!prodDesc.id().equals("prodDesc")) {
@@ -463,10 +539,14 @@ public class Game implements Comparable<Game> {
             prodDesc = prodDesc.getElementById("prodDesc");
 
             if (prodDesc == null) {
-                return false;
+                return changes;
             }
         }
 
+        String descriptionCopy = this.description;
+        if ( descriptionCopy == null )
+            descriptionCopy = new String();        
+        
         this.description = new String();
 
         for (Element e : prodDesc.getElementsByTag("p")) {
@@ -474,8 +554,11 @@ public class Game implements Comparable<Game> {
                 description += tn.text() + "\n";
             }
         }
+        
+        if ( !description.equals(descriptionCopy) )
+            changes = true;
 
-        return true;
+        return changes;
     }
 
     /**
@@ -498,8 +581,8 @@ public class Game implements Comparable<Game> {
     }
 
     /**
-     *
-     * @param prodImgMax
+     * 
+     * @param prodImgMax 
      */
     private void updateCover(Element prodImgMax) {
 
@@ -585,7 +668,52 @@ public class Game implements Comparable<Game> {
      * @throws IOException
      */
     public void update() throws IOException {
+        
+        Document html = Jsoup.connect( getURL() ).get();
+        Element body = html.body();
+        
+        if ( updateMetadata(body) == true ){
+            Log.debug("Game", getTitle() + ": Metadata have changed");
+        }
+        
+        if ( updatePrices(body) == true ) {
+            Log.debug("Game", getTitle() + ": Prices have changed");
+        }
+        
+        if ( updateBonus(body) == true ){
+            Log.debug("Game", getTitle() + ": Promo has changed");
+        }
+        
         return;
+    }
+    
+    public void exportBinary() throws IOException
+    {
+        ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream( getGamePath() + "data.dat"));
+        
+        oos.writeObject( this );
+        
+        Log.info("Game", "exported to binary");
+        oos.close();
+    }
+    
+    public static Game importBinary( String path ) throws FileNotFoundException, IOException, ClassNotFoundException
+    {        
+        ObjectInputStream ois = new ObjectInputStream(new FileInputStream(path));
+        
+        Game game = null;    
+        boolean eof = false;
+        
+        while(!eof){
+            try{
+                game = (Game)ois.readObject();
+            }catch(EOFException e){
+                eof = true;
+            }
+        }
+        
+        Log.info("Game", "imported from binary");
+        return game;
     }
 
 }
