@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
+	
+	<xs:element name="game">		
+		<xs:complexType>
+			<xs:sequence>
+				<xs:element name="title" type="xs:string"/>
+				<xs:element name="publisher" type="xs:string"/>
+				<xs:element name="platform" type="xs:string"/>
+				<xs:element name="prices">
+					<xs:complexType>
+						<xs:sequence>
+
+							<xs:element name="newPrice" minOccurs="0">
+								<xs:complexType>
+									<xs:simpleContent>
+										<xs:extension base="xs:double">
+											<xs:attribute name="available" type="xs:boolean"/>	
+										</xs:extension>		
+									</xs:simpleContent>
+								</xs:complexType>
+							</xs:element>
+
+							<xs:element name="olderNewPrices" minOccurs="0">
+								<xs:complexType>
+									<xs:sequence>
+										<xs:element name="price" type="xs:double" minOccurs="1" maxOccurs="unbounded"/>
+									</xs:sequence>
+								</xs:complexType>
+							</xs:element>
+
+							<xs:element name="usedPrice" minOccurs="0">
+								<xs:complexType>
+									<xs:simpleContent>
+										<xs:extension base="xs:double">
+											<xs:attribute name="available" type="xs:boolean"/>	
+										</xs:extension>		
+									</xs:simpleContent>
+								</xs:complexType>
+							</xs:element>
+
+							<xs:element name="olderUsedPrices" minOccurs="0">
+								<xs:complexType>
+									<xs:sequence>
+										<xs:element name="price" type="xs:double" minOccurs="1" maxOccurs="unbounded"/>
+									</xs:sequence>
+								</xs:complexType>
+							</xs:element>
+
+						</xs:sequence>
+					</xs:complexType>
+				</xs:element>
+
+				<xs:element name="pegi" minOccurs="0">
+					<xs:complexType>
+						<xs:sequence>
+							<xs:element name="type" type="xs:string" minOccurs="1" maxOccurs="unbounded"/>
+						</xs:sequence>
+					</xs:complexType>
+				</xs:element>
+
+				<xs:element name="genres" minOccurs="0">
+					<xs:complexType>
+						<xs:sequence>
+							<xs:element name="genre" type="xs:string" minOccurs="1" maxOccurs="unbounded"/>
+						</xs:sequence>
+					</xs:complexType>
+				</xs:element>
+
+				<xs:element name="officialSite" type="xs:string" minOccurs="0"/>
+				<xs:element name="players" type="xs:string" minOccurs="0"/>
+				<xs:element name="releaseDate" type="xs:string" minOccurs="0"/>
+				
+				<xs:element name="promos" minOccurs="0">
+					<xs:complexType>
+						<xs:sequence>
+							<xs:element name="promo" minOccurs="1">
+								<xs:complexType>
+									<xs:sequence>
+										<xs:element name="header" type="string" minOccurs="1"/>
+										<xs:element name="validity" type="string" minOccurs="1"/>
+									</xs:sequence>
+								</xs:complexType>
+							</xs:element>
+						</xs:sequence>
+					</xs:complexType>
+				</xs:element>
+
+				<xs:element name="description" type="xs:string" minOccurs="0"/>
+				<xs:element name="validForPromo" type="xs:boolean" minOccurs="0"/>
+
+			</xs:sequence>
+			<xs:attribute name="id" type="xs:string"/>
+		</xs:complexType>
+	</xs:element>
+</xs:schema>
