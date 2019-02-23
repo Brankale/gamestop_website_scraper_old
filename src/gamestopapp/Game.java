@@ -31,10 +31,14 @@ public class Game implements Comparable<Game>, Serializable {
     private String title;
     private String publisher;
     private String platform;
-    private double newPrice;
+    
+    private Double newPrice;
+    private Double usedPrice;
+    private Double preorderPrice;
+    
     private List<Double> olderNewPrices;
-    private double usedPrice;
     private List<Double> olderUsedPrices;
+    
     private List<String> pegi;
     private List<String> genres;
     private String officialSite;
@@ -42,7 +46,6 @@ public class Game implements Comparable<Game>, Serializable {
     private String releaseDate;
     private List<Promo> promo;
     private String description;
-    private boolean available;
 
     public Game(String url) throws IOException {
         
@@ -70,10 +73,6 @@ public class Game implements Comparable<Game>, Serializable {
         return title;
     }
 
-    public String getURL() {
-        return "www.gamestop.it/Platform/Games/" + getID();
-    }
-
     public String getPublisher() {
         return publisher;
     }
@@ -82,7 +81,7 @@ public class Game implements Comparable<Game>, Serializable {
         return platform;
     }
 
-    public double getNewPrice() {
+    public Double getNewPrice() {
         return newPrice;
     }
 
@@ -90,12 +89,16 @@ public class Game implements Comparable<Game>, Serializable {
         return olderNewPrices;
     }
 
-    public double getUsedPrice() {
+    public Double getUsedPrice() {
         return usedPrice;
     }
 
     public List<Double> getOlderUsedPrices() {
         return olderUsedPrices;
+    }
+
+    public Double getPreorderPrice() {
+        return preorderPrice;
     }
 
     public List<String> getPegi() {
@@ -130,16 +133,24 @@ public class Game implements Comparable<Game>, Serializable {
         return description;
     }
     
+    public String getURL() {
+        return "www.gamestop.it/Platform/Games/" + getID();
+    }
+    
+    public String getStoreAvailabilityURL () {
+        
+        if ( getPreorderPrice() != null )
+            return null;
+        
+        return "www.gamestop.it/StoreLocator/Index?productId=" + getID();
+    }
+    
     public String getGamePath () {
         return PATH + getID() + "/";
     }
 
     public boolean hasPromo() {
         return !promo.isEmpty();
-    }
-    
-    public boolean isAvailable() {
-        return available;
     }
 
     @Override
@@ -169,10 +180,19 @@ public class Game implements Comparable<Game>, Serializable {
         return this.getTitle().compareTo(game.getTitle());
     }
 
+    /*
     @Override
     public String toString() {
         return "Game {\n" +" ID = " + id + "\n title = " + title + "\n publisher = " + publisher + "\n platform = " + platform + "\n newPrice = " + newPrice + "\n olderNewPrices = " + olderNewPrices + "\n usedPrice = " + usedPrice + "\n olderUsedPrices = " + olderUsedPrices + "\n pegi = " + pegi + "\n ID = " + getID() + "\n genres = " + genres + "\n officialSite = " + officialSite + "\n players = " + players + "\n releaseDate = " + releaseDate + "\n promo = " + promo + "\n description {\n" + description + "}\n}";
     }
+    */
+
+    @Override
+    public String toString() {
+        return "Game{" + "\n id=" + id + ",\n title=" + title + ",\n publisher=" + publisher + ",\n platform=" + platform + ",\n newPrice=" + newPrice + ",\n usedPrice=" + usedPrice + ",\n preorderPrice=" + preorderPrice + ",\n olderNewPrices=" + olderNewPrices + ",\n olderUsedPrices=" + olderUsedPrices + ",\n pegi=" + pegi + ",\n genres=" + genres + ",\n officialSite=" + officialSite + ",\n players=" + players + ",\n releaseDate=" + releaseDate + ",\n promo=" + promo + ",\n description=" + description + "\n}";
+    }
+    
+    
 
     /**
      * returned value checked
@@ -242,38 +262,6 @@ public class Game implements Comparable<Game>, Serializable {
                 
                 // set item ID (DEPRECATED)
                 if (e.child(0).text().equals("Codice articolo")) {
-                    /*
-                    for (Node n : e.childNodes()) {
-                        String id = n.toString();
-
-                        id = id.replace("<span>", "");
-                        id = id.replace("</span>", "");
-                        id = id.replace("<em>", "");
-                        id = id.replace("</em>", "");
-                        id = id.replace(" ", "");
-
-                        if (id.split(":")[0].equals("Nuovo")) {
-                            this.newID = id.split(":")[1];
-                            continue;
-                        }
-
-                        if (id.split(":")[0].equals("Usato")) {
-                            this.usedID = id.split(":")[1];
-                            continue;
-                        }
-
-                        // NB: "ContenutoDigitale" should be like this "Contenuto Digitale"
-                        // but before I removed the spaces, so it must be written like this
-                        if (id.split(":")[0].equals("ContenutoDigitale")) {
-                            this.digitalID = id.split(":")[1];
-                            continue;
-                        }
-
-                        if (id.split(":")[0].equals("Presell")) {
-                            this.presellID = id.split(":")[1];
-                        }
-                    }
-                    */
                     continue;
                 }
 
@@ -366,7 +354,7 @@ public class Game implements Comparable<Game>, Serializable {
                 
                 Double newPriceCopy = newPrice;
                 this.newPrice = stringToPrice(price);
-                if ( newPriceCopy != newPrice )
+                if ( newPriceCopy != newPrice )     // <-- possible NullPointerException
                     changes = true;
 
                 for (Element olderPrice : singleVariantText.getElementsByClass("olderPrice")) {
@@ -380,7 +368,7 @@ public class Game implements Comparable<Game>, Serializable {
                 
                 Double usedPriceCopy = usedPrice;
                 this.usedPrice = stringToPrice(price);
-                if ( usedPriceCopy != usedPrice )
+                if ( usedPriceCopy != usedPrice )   // <-- possible NullPointerException
                     changes = true;
 
                 for (Element olderPrice : singleVariantText.getElementsByClass("olderPrice")) {
@@ -388,24 +376,16 @@ public class Game implements Comparable<Game>, Serializable {
                     this.olderUsedPrices.add(stringToPrice(price));
                 }
             }
-        }        
-        
-        // sposta in un'altra funzione
-        Element btnAddToCart = buySection.getElementById("btnAddToCart");
-        if ( btnAddToCart != null ){            
-            String style = btnAddToCart.attr("style");
-            if ( style.equals("display: block;") ){
-                if ( available == false )
-                    changes = true;
+            
+            if (singleVariantText.getElementsByClass("variantName").get(0).text().equals("Prenotazione")) {
+                String price = singleVariantText.getElementsByClass("prodPriceCont").get(0).text();
                 
-                available = true;
-            } else {
-                if ( available == true )
+                Double preorderPriceCopy = preorderPrice;
+                this.preorderPrice = stringToPrice(price);
+                if ( preorderPriceCopy != preorderPrice )   // <-- possible NullPointerException
                     changes = true;
-                
-                available = false;
             }
-        }            
+        }           
         
         if ( !olderNewPricesCopy.equals(olderNewPrices) )
             changes = true;
@@ -684,7 +664,6 @@ public class Game implements Comparable<Game>, Serializable {
             Log.debug("Game", getTitle() + ": Promo has changed");
         }
         
-        return;
     }
     
     public void exportBinary() throws IOException

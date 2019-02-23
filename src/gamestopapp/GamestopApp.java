@@ -11,6 +11,7 @@ import java.nio.file.FileStore;
 import java.nio.file.Files;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.net.ssl.SSLException;
 
 /**
  *
@@ -37,10 +38,26 @@ public class GamestopApp {
         
         //downloadAll();
         
+        String url = "https://www.gamestop.it/XboxONE/Games/107940/code-vein#";
         
+        try {
+            Game game = new Game(url);
+            System.out.println(game);
+        } catch ( SSLException ex ) {
+            System.out.println("Tempo di connessione scaduto");
+        } catch ( IOException ex ) {
+            System.out.println("Errore durante la connessione");
+        } catch ( GameException ex ) {
+            System.out.println("Creazione del gioco fallita");
+            Log.crash(ex, url);
+        }
+        
+        
+        
+        /*
         Games games = importAll();        
         System.out.println( games.toString() );
-        
+        */
     }
     
     public static Games importAll () {
