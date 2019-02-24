@@ -25,8 +25,6 @@ import org.jsoup.select.Elements;
 
 public class Game implements Comparable<Game>, Serializable {
 
-    //private static final String PATH = "userData/";
-
     private String id;
     private String title;
     private String publisher;
@@ -313,7 +311,6 @@ public class Game implements Comparable<Game>, Serializable {
             }
         }
         
-        
         if ( !genres.equals(genresCopy) )
             changes = true;
 
@@ -348,6 +345,17 @@ public class Game implements Comparable<Game>, Serializable {
         if ( olderUsedPricesCopy == null )
             olderUsedPricesCopy = new ArrayList<>();
         
+        // I make a copy before overwriting them
+        Double newPriceCopy = this.newPrice;
+        Double usedPriceCopy = this.usedPrice;
+        Double preorderPriceCopy = this.preorderPrice;
+                
+        // if the prices are removed they don't change
+        // example: newPrice is 20€ > then newPrice no longer exist > newPrice is still 20€
+        this.newPrice = null;
+        this.usedPrice = null;
+        this.preorderPrice = null;
+        
         this.olderNewPrices = new ArrayList<>();
         this.olderUsedPrices = new ArrayList<>();
 
@@ -362,10 +370,7 @@ public class Game implements Comparable<Game>, Serializable {
             if (singleVariantText.getElementsByClass("variantName").get(0).text().equals("Nuovo")) {
                 String price = singleVariantText.getElementsByClass("prodPriceCont").get(0).text();
                 
-                Double newPriceCopy = newPrice;
                 this.newPrice = stringToPrice(price);
-                if ( newPriceCopy != newPrice )     // <-- possible NullPointerException
-                    changes = true;
 
                 for (Element olderPrice : singleVariantText.getElementsByClass("olderPrice")) {
                     price = olderPrice.text();
@@ -376,10 +381,7 @@ public class Game implements Comparable<Game>, Serializable {
             if (singleVariantText.getElementsByClass("variantName").get(0).text().equals("Usato")) {
                 String price = singleVariantText.getElementsByClass("prodPriceCont").get(0).text();
                 
-                Double usedPriceCopy = usedPrice;
                 this.usedPrice = stringToPrice(price);
-                if ( usedPriceCopy != usedPrice )   // <-- possible NullPointerException
-                    changes = true;
 
                 for (Element olderPrice : singleVariantText.getElementsByClass("olderPrice")) {
                     price = olderPrice.text();
@@ -390,12 +392,18 @@ public class Game implements Comparable<Game>, Serializable {
             if (singleVariantText.getElementsByClass("variantName").get(0).text().equals("Prenotazione")) {
                 String price = singleVariantText.getElementsByClass("prodPriceCont").get(0).text();
                 
-                Double preorderPriceCopy = preorderPrice;
                 this.preorderPrice = stringToPrice(price);
-                if ( preorderPriceCopy != preorderPrice )   // <-- possible NullPointerException
-                    changes = true;
             }
-        }           
+        }
+        
+        if ( newPrice != null && !newPrice.equals(newPriceCopy) )
+            changes = true;
+        
+        if ( usedPrice != null &&  !usedPrice.equals(usedPriceCopy) )
+            changes = true;
+        
+        if ( preorderPrice != null &&  !preorderPrice.equals(preorderPriceCopy) )
+            changes = true;
         
         if ( !olderNewPricesCopy.equals(olderNewPrices) )
             changes = true;
