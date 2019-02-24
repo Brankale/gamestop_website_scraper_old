@@ -38,6 +38,8 @@ public class GamestopApp {
         
         //downloadAll();
         
+        
+        
         String url = "https://www.gamestop.it/XboxONE/Games/107940/code-vein#";
         
         try {
