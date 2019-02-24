@@ -74,11 +74,11 @@ public class GamestopApp {
         
         Game game = null;
             
-        for ( int i=100000; i<200000; ++i )
+        for ( int id=100000; id<200000; ++id )
         {                
             try {
-                Log.info("Main", "Downloading Game [ID=" + i + "] ..." );
-                game = new Game( "http://www.gamestop.it/Platform/Games/"+i );                    
+                Log.info("Main", "Downloading Game [ID=" + id + "] ..." );
+                game = new Game( Game.getURLByID(id) );                    
             } catch ( SSLException ex ) {
                 Log.error("Main", "Tempo di connessione scaduto");
             } catch ( IOException ex ) {
@@ -87,7 +87,7 @@ public class GamestopApp {
                 Log.error("Main", "Creazione del gioco fallita");
             } catch ( Exception ex ){
                 System.out.println("Fatal Error");
-                Log.crash(ex, "Game ID: " + i);
+                Log.crash(ex, "Game ID: " + id);
             }
 
             try {
