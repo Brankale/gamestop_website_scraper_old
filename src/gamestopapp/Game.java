@@ -57,6 +57,8 @@ public class Game implements Comparable<Game>, Serializable {
         updateMetadata(body);
         updatePrices(body);
 
+        Log.info("Game", "Game found", getTitle() );
+        
         // the following information are not necessary to create a game
         updatePEGI(body);
         updateBonus(body);
@@ -131,8 +133,16 @@ public class Game implements Comparable<Game>, Serializable {
         return description;
     }
     
+    public static String getURLByID ( int id ) {
+        return "http://www.gamestop.it/Platform/Games/" + id;
+    }
+    
+    public static String getURLByID ( String id ) {
+        return "http://www.gamestop.it/Platform/Games/" + id;
+    }
+    
     public String getURL() {
-        return "www.gamestop.it/Platform/Games/" + getID();
+        return getURLByID( getID() );
     }
     
     public String getStoreAvailabilityURL () {
@@ -399,10 +409,10 @@ public class Game implements Comparable<Game>, Serializable {
         if ( newPrice != null && !newPrice.equals(newPriceCopy) )
             changes = true;
         
-        if ( usedPrice != null &&  !usedPrice.equals(usedPriceCopy) )
+        if ( usedPrice != null && !usedPrice.equals(usedPriceCopy) )
             changes = true;
         
-        if ( preorderPrice != null &&  !preorderPrice.equals(preorderPriceCopy) )
+        if ( preorderPrice != null && !preorderPrice.equals(preorderPriceCopy) )
             changes = true;
         
         if ( !olderNewPricesCopy.equals(olderNewPrices) )
@@ -415,11 +425,12 @@ public class Game implements Comparable<Game>, Serializable {
     }
 
     private double stringToPrice(String price) {
-        price = price.replace(',', '.');
-        price = price.replace("€", "");
-        price = price.replace("CHF", "");
-        price = price.trim();
-
+        price = price.replace(".", "");     // <-- to handle prices over 999,99€ like 1.249,99€
+        price = price.replace(',', '.');    // <-- to convert the price in a string which can be parsed
+        price = price.replace("€", "");     // <-- remove unecessary characters
+        price = price.replace("CHF", "");   // <-- remove unecessary characters
+        price = price.trim();               // <-- remove remaning spaces
+        
         return Double.parseDouble(price);
     }
 
@@ -599,6 +610,8 @@ public class Game implements Comparable<Game>, Serializable {
 
         try {
             downloadImage("cover.jpg", imgUrl, imgPath);
+        } catch ( MalformedURLException ex ) {
+            Log.error("Game", "ID: " + getID() + " - malformed URL", imgUrl);
         } catch (IOException ex) {
             Log.error("Game", "cannot download cover", imgUrl);
         }
@@ -639,8 +652,10 @@ public class Game implements Comparable<Game>, Serializable {
 
             try {
                 downloadImage(imgName, imgUrl, imgPath);
+            } catch ( MalformedURLException ex ) {
+                Log.error("Game", "ID: " + getID() + " - malformed URL", imgUrl);
             } catch (IOException ex) {
-                Log.error("Game", "cannot download cover", imgUrl);
+                Log.error("Game", "cannot download image", imgUrl);
             }
         }
 
