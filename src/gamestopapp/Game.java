@@ -25,7 +25,7 @@ import org.jsoup.select.Elements;
 
 public class Game implements Comparable<Game>, Serializable {
 
-    private static final String PATH = "userData/";
+    //private static final String PATH = "userData/";
 
     private String id;
     private String title;
@@ -139,14 +139,32 @@ public class Game implements Comparable<Game>, Serializable {
     
     public String getStoreAvailabilityURL () {
         
+        // if a game is pre-orderable can't be in the store
         if ( getPreorderPrice() != null )
             return null;
         
         return "www.gamestop.it/StoreLocator/Index?productId=" + getID();
     }
     
-    public String getGamePath () {
-        return PATH + getID() + "/";
+    /**
+     * @return the directory where the games' folders are placed
+     */
+    public static String getDirectory () {
+        return "userData/";
+    }
+    
+    /**
+     * @return the game's directory
+     */
+    public String getGameDirectory () {
+        return getDirectory() + getID() + "/";
+    }
+    
+    /**
+     * @return the game's gallery directory
+     */
+    public String getGameGalleryDirectory () {
+        return getGameDirectory() + "gallery/";
     }
 
     public boolean hasPromo() {
@@ -180,18 +198,10 @@ public class Game implements Comparable<Game>, Serializable {
         return this.getTitle().compareTo(game.getTitle());
     }
 
-    /*
-    @Override
-    public String toString() {
-        return "Game {\n" +" ID = " + id + "\n title = " + title + "\n publisher = " + publisher + "\n platform = " + platform + "\n newPrice = " + newPrice + "\n olderNewPrices = " + olderNewPrices + "\n usedPrice = " + usedPrice + "\n olderUsedPrices = " + olderUsedPrices + "\n pegi = " + pegi + "\n ID = " + getID() + "\n genres = " + genres + "\n officialSite = " + officialSite + "\n players = " + players + "\n releaseDate = " + releaseDate + "\n promo = " + promo + "\n description {\n" + description + "}\n}";
-    }
-    */
-
     @Override
     public String toString() {
         return "Game{" + "\n id=" + id + ",\n title=" + title + ",\n publisher=" + publisher + ",\n platform=" + platform + ",\n newPrice=" + newPrice + ",\n usedPrice=" + usedPrice + ",\n preorderPrice=" + preorderPrice + ",\n olderNewPrices=" + olderNewPrices + ",\n olderUsedPrices=" + olderUsedPrices + ",\n pegi=" + pegi + ",\n genres=" + genres + ",\n officialSite=" + officialSite + ",\n players=" + players + ",\n releaseDate=" + releaseDate + ",\n promo=" + promo + ",\n description=" + description + "\n}";
     }
-    
     
 
     /**
@@ -546,14 +556,14 @@ public class Game implements Comparable<Game>, Serializable {
      */
     private void mkdir() {
         // create userData folder if doesn't exist
-        File dir = new File(PATH);
+        File dir = new File( getDirectory() );
 
         if (!dir.exists()) {
             dir.mkdir();
         }
 
         // create the game folder if doesn't exist
-        dir = new File(PATH + getID());
+        dir = new File( getGameDirectory() );
 
         if (!dir.exists()) {
             dir.mkdir();
@@ -577,7 +587,7 @@ public class Game implements Comparable<Game>, Serializable {
         }
 
         String imgUrl = prodImgMax.attr("href");
-        String imgPath = PATH + getID();
+        String imgPath = getGameDirectory();
 
         try {
             downloadImage("cover.jpg", imgUrl, imgPath);
@@ -602,7 +612,7 @@ public class Game implements Comparable<Game>, Serializable {
             mediaImages = mediaImages.getElementsByClass("mediaImages").get(0);
         }
 
-        String imgPath = PATH + getID() + "/" + "gallery";
+        String imgPath = getGameGalleryDirectory();
 
         File dir = new File(imgPath);
         if (!dir.exists()) {
@@ -668,7 +678,7 @@ public class Game implements Comparable<Game>, Serializable {
     
     public void exportBinary() throws IOException
     {
-        ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream( getGamePath() + "data.dat"));
+        ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream( getGameDirectory() + "data.dat"));
         
         oos.writeObject( this );
         
