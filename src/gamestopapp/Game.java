@@ -205,10 +205,59 @@ public class Game implements Comparable<Game>, Serializable {
     public int compareTo(Game game) {
         return this.getTitle().compareTo(game.getTitle());
     }
-
+    
     @Override
-    public String toString() {
-        return "Game{" + "\n id=" + id + ",\n title=" + title + ",\n publisher=" + publisher + ",\n platform=" + platform + ",\n newPrice=" + newPrice + ",\n usedPrice=" + usedPrice + ",\n preorderPrice=" + preorderPrice + ",\n olderNewPrices=" + olderNewPrices + ",\n olderUsedPrices=" + olderUsedPrices + ",\n pegi=" + pegi + ",\n genres=" + genres + ",\n officialSite=" + officialSite + ",\n players=" + players + ",\n releaseDate=" + releaseDate + ",\n promo=" + promo + ",\n description=" + description + "\n}";
+    public String toString () {
+        String str = new String();
+        
+        str += "Game {" + "\n ";        
+        str += "id = " + id + "\n ";
+        str += "title = " + title + "\n ";
+        str += "publisher = " + publisher + "\n ";
+        str += "platform = " + platform + "\n ";
+        
+        if ( newPrice != null ){
+            str += "newPrice = " + newPrice + "\n ";
+            str += "olderNewPrices = " + olderNewPrices + "\n ";
+        }
+        
+        if ( usedPrice != null ){
+            str += "usedPrice = " + usedPrice + "\n ";
+            str += "olderUsedPrices = " + olderUsedPrices + "\n ";
+        }
+        
+        if ( preorderPrice != null ){
+            str += "preorderPrice = " + preorderPrice + "\n ";
+        }
+        
+        if ( promo != null ){
+            for ( Promo p : promo )
+                str += p + "\n ";
+        }
+        
+        if ( pegi != null ){
+            str += "pegi = " + pegi + "\n ";
+        }
+        
+        if ( genres != null ){
+            str += "genres = " + genres + "\n ";
+        }
+        
+        if ( officialSite != null ){
+            str += "officialSite = " + officialSite + "\n ";
+        }
+        
+        if ( players != null ){
+            str += "players = " + players + "\n ";
+        }
+        
+        if ( releaseDate != null ){
+            str += "releaseDate = " + releaseDate + "\n";
+        }
+        
+        str += "}";
+        
+        return str;
     }
     
 
@@ -504,10 +553,7 @@ public class Game implements Comparable<Game>, Serializable {
             }
         }
         
-        List<Promo> promoCopy = promo;
-        if ( promoCopy == null )
-            promoCopy = new ArrayList<>();
-        
+        List<Promo> promoCopy = promo;        
         promo = new ArrayList<>();
 
         for (Element prodSinglePromo : bonusBlock.getElementsByClass("prodSinglePromo")) {
@@ -516,15 +562,20 @@ public class Game implements Comparable<Game>, Serializable {
             Elements p = prodSinglePromo.getElementsByTag("p");
 
             // possible NullPointerException
-            String header = h4.text();
-            String validity = p.get(0).text();
-            String message = p.get(1).text();
-            String messageURL = "www.gamestop.it" + p.get(1).getElementsByTag("a").attr("href");
-            
-            promo.add(new Promo(header, validity, message, messageURL));
-
             // per il momento non voglio correggere questo errore perchè
             // mi servono molti casi di test
+            String header = h4.text();
+            String validity = p.get(0).text();
+            String message = null;
+            String messageURL = null;
+            
+            // se la promozione contiene un link per personalizzare l'acquisto
+            if ( p.size() > 1 ) {
+                message = p.get(1).text();
+                messageURL = "www.gamestop.it" + p.get(1).getElementsByTag("a").attr("href");
+            }
+            
+            promo.add(new Promo(header, validity, message, messageURL));
         }
         
         if ( !promo.equals(promoCopy) )
