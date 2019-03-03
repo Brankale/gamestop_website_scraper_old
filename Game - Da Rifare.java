@@ -17,35 +17,40 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.transform.OutputKeys;
+import javax.xml.transform.Transformer;
+import javax.xml.transform.TransformerFactory;
+import javax.xml.transform.dom.DOMSource;
+import javax.xml.transform.stream.StreamResult;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.nodes.TextNode;
 import org.jsoup.select.Elements;
+import sun.security.acl.OwnerImpl;
 
 public class Game implements Comparable<Game>, Serializable {
+
+    private static final String PATH = "userData/";
 
     private String id;
     private String title;
     private String publisher;
     private String platform;
-    
-    private Double newPrice;
-    private Double usedPrice;
-    private Double preorderPrice;
-    
+    private double newPrice;
     private List<Double> olderNewPrices;
+    private double usedPrice;
     private List<Double> olderUsedPrices;
-    
     private List<String> pegi;
     private List<String> genres;
     private String officialSite;
     private String players;
     private String releaseDate;
-    private boolean validForPromotions;
-    
     private List<Promo> promo;
     private String description;
+    private boolean available;
 
     public Game(String url) throws IOException {
         
@@ -59,8 +64,6 @@ public class Game implements Comparable<Game>, Serializable {
         updateMetadata(body);
         updatePrices(body);
 
-        Log.info("Game", "Game found", getTitle() );
-        
         // the following information are not necessary to create a game
         updatePEGI(body);
         updateBonus(body);
@@ -75,6 +78,10 @@ public class Game implements Comparable<Game>, Serializable {
         return title;
     }
 
+    public String getURL() {
+        return "www.gamestop.it/Platform/Games/" + getID();
+    }
+
     public String getPublisher() {
         return publisher;
     }
@@ -83,7 +90,7 @@ public class Game implements Comparable<Game>, Serializable {
         return platform;
     }
 
-    public Double getNewPrice() {
+    public double getNewPrice() {
         return newPrice;
     }
 
@@ -91,16 +98,12 @@ public class Game implements Comparable<Game>, Serializable {
         return olderNewPrices;
     }
 
-    public Double getUsedPrice() {
+    public double getUsedPrice() {
         return usedPrice;
     }
 
     public List<Double> getOlderUsedPrices() {
         return olderUsedPrices;
-    }
-
-    public Double getPreorderPrice() {
-        return preorderPrice;
     }
 
     public List<String> getPegi() {
@@ -134,55 +137,17 @@ public class Game implements Comparable<Game>, Serializable {
     public String getDescription() {
         return description;
     }
-
-    public boolean isValidForPromotions() {
-        return validForPromotions;
-    }
     
-    public static String getURLByID ( int id ) {
-        return "http://www.gamestop.it/Platform/Games/" + id;
-    }
-    
-    public static String getURLByID ( String id ) {
-        return "http://www.gamestop.it/Platform/Games/" + id;
-    }
-    
-    public String getURL() {
-        return getURLByID( getID() );
-    }
-    
-    public String getStoreAvailabilityURL () {
-        
-        // if a game is pre-orderable can't be in the store
-        if ( getPreorderPrice() != null )
-            return null;
-        
-        return "www.gamestop.it/StoreLocator/Index?productId=" + getID();
-    }
-    
-    /**
-     * @return the directory where the games' folders are placed
-     */
-    public static String getDirectory () {
-        return "userData/";
-    }
-    
-    /**
-     * @return the game's directory
-     */
-    public String getGameDirectory () {
-        return getDirectory() + getID() + "/";
-    }
-    
-    /**
-     * @return the game's gallery directory
-     */
-    public String getGameGalleryDirectory () {
-        return getGameDirectory() + "gallery/";
+    public String getGamePath () {
+        return PATH + getID() + "/";
     }
 
     public boolean hasPromo() {
         return !promo.isEmpty();
+    }
+    
+    public boolean isAvailable() {
+        return available;
     }
 
     @Override
@@ -211,63 +176,11 @@ public class Game implements Comparable<Game>, Serializable {
     public int compareTo(Game game) {
         return this.getTitle().compareTo(game.getTitle());
     }
-    
+
     @Override
-    public String toString () {
-        String str = new String();
-        
-        str += "Game {" + "\n ";        
-        str += "id = " + id + "\n ";
-        str += "title = " + title + "\n ";
-        str += "publisher = " + publisher + "\n ";
-        str += "platform = " + platform + "\n ";
-        
-        if ( newPrice != null ){
-            str += "newPrice = " + newPrice + "\n ";
-            str += "olderNewPrices = " + olderNewPrices + "\n ";
-        }
-        
-        if ( usedPrice != null ){
-            str += "usedPrice = " + usedPrice + "\n ";
-            str += "olderUsedPrices = " + olderUsedPrices + "\n ";
-        }
-        
-        if ( preorderPrice != null ){
-            str += "preorderPrice = " + preorderPrice + "\n ";
-        }
-        
-        if ( promo != null ){
-            for ( Promo p : promo )
-                str += p + "\n ";
-        }
-        
-        if ( pegi != null ){
-            str += "pegi = " + pegi + "\n ";
-        }
-        
-        if ( genres != null ){
-            str += "genres = " + genres + "\n ";
-        }
-        
-        if ( officialSite != null ){
-            str += "officialSite = " + officialSite + "\n ";
-        }
-        
-        if ( players != null ){
-            str += "players = " + players + "\n ";
-        }
-        
-        if ( releaseDate != null ){
-            str += "releaseDate = " + releaseDate + "\n ";
-        }
-        
-        str += "validForPromotions = " + validForPromotions + "\n";
-        
-        str += "}";
-        
-        return str;
+    public String toString() {
+        return "Game {\n" +" ID = " + id + "\n title = " + title + "\n publisher = " + publisher + "\n platform = " + platform + "\n newPrice = " + newPrice + "\n olderNewPrices = " + olderNewPrices + "\n usedPrice = " + usedPrice + "\n olderUsedPrices = " + olderUsedPrices + "\n pegi = " + pegi + "\n ID = " + getID() + "\n genres = " + genres + "\n officialSite = " + officialSite + "\n players = " + players + "\n releaseDate = " + releaseDate + "\n promo = " + promo + "\n description {\n" + description + "}\n}";
     }
-    
 
     /**
      * returned value checked
@@ -313,10 +226,6 @@ public class Game implements Comparable<Game>, Serializable {
      */
     private boolean updateMetadata(Element addedDet) {
         
-        // the content is inside "addedDetInfo" which is inside "addedDet"
-        // the method use "addedDet" instead of "addedDetInfo" because
-        // "addedDet" has an ID instead of a class
-        
         boolean changes = false;
 
         // if the element hasn't got the id name "addedDet" 
@@ -341,6 +250,38 @@ public class Game implements Comparable<Game>, Serializable {
                 
                 // set item ID (DEPRECATED)
                 if (e.child(0).text().equals("Codice articolo")) {
+                    /*
+                    for (Node n : e.childNodes()) {
+                        String id = n.toString();
+
+                        id = id.replace("<span>", "");
+                        id = id.replace("</span>", "");
+                        id = id.replace("<em>", "");
+                        id = id.replace("</em>", "");
+                        id = id.replace(" ", "");
+
+                        if (id.split(":")[0].equals("Nuovo")) {
+                            this.newID = id.split(":")[1];
+                            continue;
+                        }
+
+                        if (id.split(":")[0].equals("Usato")) {
+                            this.usedID = id.split(":")[1];
+                            continue;
+                        }
+
+                        // NB: "ContenutoDigitale" should be like this "Contenuto Digitale"
+                        // but before I removed the spaces, so it must be written like this
+                        if (id.split(":")[0].equals("ContenutoDigitale")) {
+                            this.digitalID = id.split(":")[1];
+                            continue;
+                        }
+
+                        if (id.split(":")[0].equals("Presell")) {
+                            this.presellID = id.split(":")[1];
+                        }
+                    }
+                    */
                     continue;
                 }
 
@@ -382,13 +323,6 @@ public class Game implements Comparable<Game>, Serializable {
             }
         }
         
-        //Log.debug("Game", "Ok");
-        
-        // search for a tag with this class name
-        if ( !addedDet.getElementsByClass("ProdottoValido").isEmpty() ) {
-            this.validForPromotions = true;
-            changes = true;
-        }
         
         if ( !genres.equals(genresCopy) )
             changes = true;
@@ -424,17 +358,6 @@ public class Game implements Comparable<Game>, Serializable {
         if ( olderUsedPricesCopy == null )
             olderUsedPricesCopy = new ArrayList<>();
         
-        // I make a copy before overwriting them
-        Double newPriceCopy = this.newPrice;
-        Double usedPriceCopy = this.usedPrice;
-        Double preorderPriceCopy = this.preorderPrice;
-                
-        // if the prices are removed they don't change
-        // example: newPrice is 20€ > then newPrice no longer exist > newPrice is still 20€
-        this.newPrice = null;
-        this.usedPrice = null;
-        this.preorderPrice = null;
-        
         this.olderNewPrices = new ArrayList<>();
         this.olderUsedPrices = new ArrayList<>();
 
@@ -449,7 +372,10 @@ public class Game implements Comparable<Game>, Serializable {
             if (singleVariantText.getElementsByClass("variantName").get(0).text().equals("Nuovo")) {
                 String price = singleVariantText.getElementsByClass("prodPriceCont").get(0).text();
                 
+                Double newPriceCopy = newPrice;
                 this.newPrice = stringToPrice(price);
+                if ( newPriceCopy != newPrice )
+                    changes = true;
 
                 for (Element olderPrice : singleVariantText.getElementsByClass("olderPrice")) {
                     price = olderPrice.text();
@@ -460,29 +386,34 @@ public class Game implements Comparable<Game>, Serializable {
             if (singleVariantText.getElementsByClass("variantName").get(0).text().equals("Usato")) {
                 String price = singleVariantText.getElementsByClass("prodPriceCont").get(0).text();
                 
+                Double usedPriceCopy = usedPrice;
                 this.usedPrice = stringToPrice(price);
+                if ( usedPriceCopy != usedPrice )
+                    changes = true;
 
                 for (Element olderPrice : singleVariantText.getElementsByClass("olderPrice")) {
                     price = olderPrice.text();
                     this.olderUsedPrices.add(stringToPrice(price));
                 }
             }
-            
-            if (singleVariantText.getElementsByClass("variantName").get(0).text().equals("Prenotazione")) {
-                String price = singleVariantText.getElementsByClass("prodPriceCont").get(0).text();
+        }        
+        
+        // sposta in un'altra funzione
+        Element btnAddToCart = buySection.getElementById("btnAddToCart");
+        if ( btnAddToCart != null ){            
+            String style = btnAddToCart.attr("style");
+            if ( style.equals("display: block;") ){
+                if ( available == false )
+                    changes = true;
                 
-                this.preorderPrice = stringToPrice(price);
+                available = true;
+            } else {
+                if ( available == true )
+                    changes = true;
+                
+                available = false;
             }
-        }
-        
-        if ( newPrice != null && !newPrice.equals(newPriceCopy) )
-            changes = true;
-        
-        if ( usedPrice != null && !usedPrice.equals(usedPriceCopy) )
-            changes = true;
-        
-        if ( preorderPrice != null && !preorderPrice.equals(preorderPriceCopy) )
-            changes = true;
+        }            
         
         if ( !olderNewPricesCopy.equals(olderNewPrices) )
             changes = true;
@@ -494,12 +425,11 @@ public class Game implements Comparable<Game>, Serializable {
     }
 
     private double stringToPrice(String price) {
-        price = price.replace(".", "");     // <-- to handle prices over 999,99€ like 1.249,99€
-        price = price.replace(',', '.');    // <-- to convert the price in a string which can be parsed
-        price = price.replace("€", "");     // <-- remove unecessary characters
-        price = price.replace("CHF", "");   // <-- remove unecessary characters
-        price = price.trim();               // <-- remove remaning spaces
-        
+        price = price.replace(',', '.');
+        price = price.replace("€", "");
+        price = price.replace("CHF", "");
+        price = price.trim();
+
         return Double.parseDouble(price);
     }
 
@@ -573,7 +503,10 @@ public class Game implements Comparable<Game>, Serializable {
             }
         }
         
-        List<Promo> promoCopy = promo;        
+        List<Promo> promoCopy = promo;
+        if ( promoCopy == null )
+            promoCopy = new ArrayList<>();
+        
         promo = new ArrayList<>();
 
         for (Element prodSinglePromo : bonusBlock.getElementsByClass("prodSinglePromo")) {
@@ -582,20 +515,15 @@ public class Game implements Comparable<Game>, Serializable {
             Elements p = prodSinglePromo.getElementsByTag("p");
 
             // possible NullPointerException
-            // per il momento non voglio correggere questo errore perchè
-            // mi servono molti casi di test
             String header = h4.text();
             String validity = p.get(0).text();
-            String message = null;
-            String messageURL = null;
-            
-            // se la promozione contiene un link per personalizzare l'acquisto
-            if ( p.size() > 1 ) {
-                message = p.get(1).text();
-                messageURL = "www.gamestop.it" + p.get(1).getElementsByTag("a").attr("href");
-            }
+            String message = p.get(1).text();
+            String messageURL = "www.gamestop.it" + p.get(1).getElementsByTag("a").attr("href");
             
             promo.add(new Promo(header, validity, message, messageURL));
+
+            // per il momento non voglio correggere questo errore perchè
+            // mi servono molti casi di test
         }
         
         if ( !promo.equals(promoCopy) )
@@ -646,14 +574,14 @@ public class Game implements Comparable<Game>, Serializable {
      */
     private void mkdir() {
         // create userData folder if doesn't exist
-        File dir = new File( getDirectory() );
+        File dir = new File(PATH);
 
         if (!dir.exists()) {
             dir.mkdir();
         }
 
         // create the game folder if doesn't exist
-        dir = new File( getGameDirectory() );
+        dir = new File(PATH + getID());
 
         if (!dir.exists()) {
             dir.mkdir();
@@ -677,12 +605,10 @@ public class Game implements Comparable<Game>, Serializable {
         }
 
         String imgUrl = prodImgMax.attr("href");
-        String imgPath = getGameDirectory();
+        String imgPath = PATH + getID();
 
         try {
             downloadImage("cover.jpg", imgUrl, imgPath);
-        } catch ( MalformedURLException ex ) {
-            Log.error("Game", "ID: " + getID() + " - malformed URL", imgUrl);
         } catch (IOException ex) {
             Log.error("Game", "cannot download cover", imgUrl);
         }
@@ -704,7 +630,7 @@ public class Game implements Comparable<Game>, Serializable {
             mediaImages = mediaImages.getElementsByClass("mediaImages").get(0);
         }
 
-        String imgPath = getGameGalleryDirectory();
+        String imgPath = PATH + getID() + "/" + "gallery";
 
         File dir = new File(imgPath);
         if (!dir.exists()) {
@@ -723,17 +649,15 @@ public class Game implements Comparable<Game>, Serializable {
 
             try {
                 downloadImage(imgName, imgUrl, imgPath);
-            } catch ( MalformedURLException ex ) {
-                Log.error("Game", "ID: " + getID() + " - malformed URL", imgUrl);
             } catch (IOException ex) {
-                Log.error("Game", "cannot download image", imgUrl);
+                Log.error("Game", "cannot download cover", imgUrl);
             }
         }
 
     }
 
     private void downloadImage(String name, String imgUrl, String imgPath) throws MalformedURLException, IOException {
-        imgPath = imgPath + name;
+        imgPath = imgPath + "/" + name;
         File f = new File(imgPath);
 
         // if the image already exists
@@ -768,11 +692,12 @@ public class Game implements Comparable<Game>, Serializable {
             Log.debug("Game", getTitle() + ": Promo has changed");
         }
         
+        return;
     }
     
     public void exportBinary() throws IOException
     {
-        ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream( getGameDirectory() + "data.dat"));
+        ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream( getGamePath() + "data.dat"));
         
         oos.writeObject( this );
         
@@ -798,5 +723,169 @@ public class Game implements Comparable<Game>, Serializable {
         Log.info("Game", "imported from binary");
         return game;
     }
-
+    
+    public void exportXML() throws Exception{
+        
+        org.w3c.dom.Document doc = DocumentBuilderFactory.newInstance().newDocumentBuilder().newDocument();
+        
+        doc.appendChild(exportXML(doc));
+        
+        Transformer transformer = TransformerFactory.newInstance().newTransformer();
+        transformer.setOutputProperty(OutputKeys.INDENT, "yes");
+        transformer.setOutputProperty("{http://xml.apache.org/xslt}indent-amount", "2");
+        File f = new File("data.xml");
+        transformer.transform( new DOMSource(doc), new StreamResult(f));
+       
+        
+    }
+    
+    public org.w3c.dom.Element exportXML(org.w3c.dom.Document doc){
+        
+        org.w3c.dom.Element game = doc.createElement("game");
+        
+        //Element Title
+        org.w3c.dom.Element elementTitle = doc.createElement("title");
+        elementTitle.setTextContent(this.title);
+        game.appendChild(elementTitle);
+        
+        /*
+        //Element URL
+        org.w3c.dom.Element elementUrl = doc.createElement("url");
+        elementUrl.setTextContent(this.url);
+        game.appendChild(elementUrl);*/
+        
+        //Element Publisher
+        org.w3c.dom.Element elementPublisher = doc.createElement("publisher");
+        elementPublisher.setTextContent(this.publisher);
+        game.appendChild(elementPublisher);
+        
+        //Element Platform
+        org.w3c.dom.Element elementPlatform = doc.createElement("platform");
+        elementPlatform.setTextContent(this.platform);
+        game.appendChild(elementPlatform);
+        
+        //Element NewPrice
+        if(this.newPrice > -1){
+            org.w3c.dom.Element elementNewPrice = doc.createElement("newPrice");
+            elementNewPrice.setTextContent(String.valueOf(this.newPrice));
+            game.appendChild(elementNewPrice); 
+        }
+        
+        //Element OlderNewPrices
+        if(this.olderNewPrices != null && this.olderNewPrices.size() > 0){
+            org.w3c.dom.Element elementOlderNewPrice = doc.createElement("olderNewPrices");
+            
+            for(Double price : this.olderNewPrices){
+                org.w3c.dom.Element elementPrice = doc.createElement("price");
+                elementPrice.setTextContent(price.toString());
+                elementOlderNewPrice.appendChild(elementPrice);
+            }
+            
+            game.appendChild(elementOlderNewPrice);
+        }
+        
+        //Element UsedPrice
+        if(this.usedPrice > -1){
+            org.w3c.dom.Element elementUsedPrice = doc.createElement("usedPrice");
+            elementUsedPrice.setTextContent(String.valueOf(this.usedPrice));
+            game.appendChild(elementUsedPrice); 
+        }
+        
+        //Element OlderUsedPrices
+        if(this.olderUsedPrices != null && this.olderUsedPrices.size() > 0){
+            org.w3c.dom.Element elementOlderUsedPrice = doc.createElement("olderUsedPrices");
+            
+            for(Double price : this.olderUsedPrices){
+                org.w3c.dom.Element elementPrice = doc.createElement("price");
+                elementPrice.setTextContent(price.toString());
+                elementOlderUsedPrice.appendChild(elementPrice);
+            }
+            
+            game.appendChild(elementOlderUsedPrice);
+        }
+        
+        //Element Pegi
+        if(pegi != null){
+            org.w3c.dom.Element elementPegiList = doc.createElement("pegiList");
+            for(String p : this.pegi){
+                org.w3c.dom.Element elementPegi = doc.createElement("pegi");
+                elementPegi.setTextContent(p);
+                elementPegiList.appendChild(elementPegi);
+            }
+            game.appendChild(elementPegiList);
+        }
+        
+        /*
+        //Element NewId
+        if(this.new_ID != null){
+            org.w3c.dom.Element elementNewId = doc.createElement("newId");
+            elementNewId.setTextContent(this.new_ID);
+            game.appendChild(elementNewId);
+        }
+        
+        //Element DigitalId
+        if(this.digital_ID != null){
+            org.w3c.dom.Element elementDigitalId = doc.createElement("digitalId");
+            elementDigitalId.setTextContent(this.digital_ID);
+            game.appendChild(elementDigitalId);
+        }
+        
+        //Element UsedId
+        if(this.used_ID != null){
+            org.w3c.dom.Element elementUsedId = doc.createElement("usedId");
+            elementUsedId.setTextContent(this.used_ID);
+            game.appendChild(elementUsedId);
+        }
+        
+        //Element PresellId
+        if(this.presell_ID!= null){
+            org.w3c.dom.Element elementPresellId = doc.createElement("presellId");
+            elementPresellId.setTextContent(this.presell_ID);
+            game.appendChild(elementPresellId);
+        }
+        */
+        
+        //Element Genres
+        if(this.genres != null && this.genres.size() > 0){
+            org.w3c.dom.Element elementGenres = doc.createElement("genres");
+            
+            for(String genre : this.genres){
+                org.w3c.dom.Element elementGenre = doc.createElement("genre");
+                elementGenre.setTextContent(genre);
+                elementGenres.appendChild(elementGenre);
+            }
+            
+            game.appendChild(elementGenres);
+        }
+        
+        //Element OfficialSite
+        if(this.officialSite != null){
+            org.w3c.dom.Element elementOfficialSite = doc.createElement("officialSite");
+            elementOfficialSite.setTextContent(this.officialSite);
+            game.appendChild(elementOfficialSite);
+        }
+        
+        //Element Players
+        if(this.players != null){
+            org.w3c.dom.Element elementPlayers = doc.createElement("players");
+            elementPlayers.setTextContent(this.players);
+            game.appendChild(elementPlayers);
+        }
+        
+        //Element ReleaseDate
+        org.w3c.dom.Element elementReleaseDate = doc.createElement("releaseDate");
+        elementReleaseDate.setTextContent(this.releaseDate);
+        game.appendChild(elementReleaseDate);
+        
+        return game;
+        
+    }
+    
+    
+    public Game(){
+        this.id = "adasd";
+        this.title="adsd";
+        this.publisher = "adasd";
+        this.platform = "dasda";
+    }
 }
