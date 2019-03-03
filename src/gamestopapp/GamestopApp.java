@@ -10,7 +10,8 @@ public class GamestopApp {
 
     public static void main(String[] args) {       
         
-        downloadAll();
+        System.out.println( downloadGame("190") );
+        //downloadAll();
         
     }
     

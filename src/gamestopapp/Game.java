@@ -42,6 +42,8 @@ public class Game implements Comparable<Game>, Serializable {
     private String officialSite;
     private String players;
     private String releaseDate;
+    private boolean validForPromotions;
+    
     private List<Promo> promo;
     private String description;
 
@@ -131,6 +133,10 @@ public class Game implements Comparable<Game>, Serializable {
 
     public String getDescription() {
         return description;
+    }
+
+    public boolean isValidForPromotions() {
+        return validForPromotions;
     }
     
     public static String getURLByID ( int id ) {
@@ -252,8 +258,10 @@ public class Game implements Comparable<Game>, Serializable {
         }
         
         if ( releaseDate != null ){
-            str += "releaseDate = " + releaseDate + "\n";
+            str += "releaseDate = " + releaseDate + "\n ";
         }
+        
+        str += "validForPromotions = " + validForPromotions + "\n";
         
         str += "}";
         
@@ -304,6 +312,10 @@ public class Game implements Comparable<Game>, Serializable {
      * @return 
      */
     private boolean updateMetadata(Element addedDet) {
+        
+        // the content is inside "addedDetInfo" which is inside "addedDet"
+        // the method use "addedDet" instead of "addedDetInfo" because
+        // "addedDet" has an ID instead of a class
         
         boolean changes = false;
 
@@ -368,6 +380,14 @@ public class Game implements Comparable<Game>, Serializable {
                         changes = true;
                 }
             }
+        }
+        
+        //Log.debug("Game", "Ok");
+        
+        // search for a tag with this class name
+        if ( !addedDet.getElementsByClass("ProdottoValido").isEmpty() ) {
+            this.validForPromotions = true;
+            changes = true;
         }
         
         if ( !genres.equals(genresCopy) )
@@ -713,7 +733,7 @@ public class Game implements Comparable<Game>, Serializable {
     }
 
     private void downloadImage(String name, String imgUrl, String imgPath) throws MalformedURLException, IOException {
-        imgPath = imgPath + "/" + name;
+        imgPath = imgPath + name;
         File f = new File(imgPath);
 
         // if the image already exists
