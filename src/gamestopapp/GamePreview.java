@@ -1,22 +1,29 @@
 package gamestopapp;
 
-import java.awt.Image;
-import java.io.IOException;
-import java.io.UnsupportedEncodingException;
-import java.net.MalformedURLException;
-import java.net.SocketTimeoutException;
-import java.net.URL;
-import java.net.URLEncoder;
-import java.util.ArrayList;
 import java.util.List;
-import javax.imageio.ImageIO;
-import org.jsoup.Jsoup;
-import org.jsoup.nodes.Document;
-import org.jsoup.nodes.Element;
-import org.jsoup.select.Elements;
+import java.util.Objects;
 
-public class GamePreview {
+public class GamePreview implements Comparable<GamePreview> {
     
+    public static final String PATH = "tmp/";
+    
+    protected String id;
+    protected String title;
+    protected String publisher;
+    protected String platform;
+    
+    protected Double newPrice;
+    protected Double usedPrice;
+    protected Double preorderPrice;    
+    protected List<Double> olderNewPrices;
+    protected List<Double> olderUsedPrices;
+    
+    protected List<String> pegi;
+    protected String releaseDate;
+    
+    
+    
+    /*
     private String title;
     private String url;
     private String platform;
@@ -98,6 +105,118 @@ public class GamePreview {
         
         return searchedGames;
     }
+*/
+
+    public String getId() {
+        return id;
+    }
+
+    public String getTitle() {
+        return title;
+    }
+
+    public String getPublisher() {
+        return publisher;
+    }
+
+    public String getPlatform() {
+        return platform;
+    }
+
+    public Double getNewPrice() {
+        return newPrice;
+    }
     
+    public boolean hasNewPrice() {
+        return newPrice != null;
+    }
+
+    public Double getUsedPrice() {
+        return usedPrice;
+    }
+    
+    public boolean hasUsedPrice() {
+        return usedPrice != null;
+    }
+
+    public Double getPreorderPrice() {
+        return preorderPrice;
+    }
+    
+    public boolean hasPreorderPrice() {
+        return preorderPrice != null;
+    }
+
+    public List<Double> getOlderNewPrices() {
+        return olderNewPrices;
+    }
+    
+    public boolean hasOlderNewPrices() {
+        return olderNewPrices != null;
+    }
+
+    public List<Double> getOlderUsedPrices() {
+        return olderUsedPrices;
+    }
+    
+    public boolean hasOlderUsedPrices() {
+        return olderUsedPrices != null;
+    }
+
+    public List<String> getPegi() {
+        return pegi;
+    }
+
+    public String getReleaseDate() {
+        return releaseDate;
+    }
+    
+    public String getURL() {
+        return getURLByID(id);
+    }
+    
+    public static String getURLByID ( String id ) {
+        return "http://www.gamestop.it/Platform/Games/" + id;
+    }
+    
+    public String getGameDirectory() {
+        return PATH + id + "/";
+    }
+    
+    public String getCover() {
+        return getGameDirectory() + "cover.jpg";
+    }
+
+    @Override
+    public int hashCode() {
+        int hash = 7;
+        hash = 79 * hash + Objects.hashCode(this.id);
+        return hash;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) {
+            return true;
+        }
+        if (obj == null) {
+            return false;
+        }
+        if (getClass() != obj.getClass()) {
+            return false;
+        }
+        final GamePreview other = (GamePreview) obj;
+        return Objects.equals(this.id, other.id);
+    }
+
+    @Override
+    public String toString() {
+        return "GamePreview{" + "id=" + id + ", title=" + title + ", publisher=" + publisher + ", platform=" + platform + ", newPrice=" + newPrice + ", usedPrice=" + usedPrice + ", preorderPrice=" + preorderPrice + ", olderNewPrices=" + olderNewPrices + ", olderUsedPrices=" + olderUsedPrices + '}';
+    }
+
+    @Override
+    public int compareTo(GamePreview gamePreview) {
+        return title.compareTo(gamePreview.getTitle());
+    }
     
 }

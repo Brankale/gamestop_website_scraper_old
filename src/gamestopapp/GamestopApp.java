@@ -10,8 +10,16 @@ public class GamestopApp {
 
     public static void main(String[] args) {       
         
-        System.out.println( downloadGame("190") );
+        Game game = downloadGame("190");
+        GamePreview gp = game;
+        System.out.println(gp.id);
+        
+        
+        
+        
+        //System.out.println( game.hasGallery() );
         //downloadAll();
+        
         
     }
     
