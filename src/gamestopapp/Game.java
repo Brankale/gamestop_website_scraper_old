@@ -180,6 +180,10 @@ public class Game extends GamePreview implements Serializable {
             str += "preorderPrice = " + preorderPrice + "\n ";
         }
         
+        if ( digitalPrice != null ){
+            str += "digitalPrice = " + digitalPrice + "\n ";
+        }
+        
         if ( promo != null ){
             for ( Promo p : promo )
                 str += p + "\n ";
@@ -363,12 +367,14 @@ public class Game extends GamePreview implements Serializable {
         Double newPriceCopy = this.newPrice;
         Double usedPriceCopy = this.usedPrice;
         Double preorderPriceCopy = this.preorderPrice;
+        Double digitalPriceCopy = this.digitalPrice;
                 
         // if the prices are removed they don't change
         // example: newPrice is 20€ > then newPrice no longer exist > newPrice is still 20€
         this.newPrice = null;
         this.usedPrice = null;
         this.preorderPrice = null;
+        this.digitalPrice = null;
         this.olderNewPrices = null;
         this.olderUsedPrices = null;
 
@@ -417,6 +423,12 @@ public class Game extends GamePreview implements Serializable {
                 
                 this.preorderPrice = stringToPrice(price);
             }
+            
+            if (singleVariantText.getElementsByClass("variantName").get(0).text().equals("Contenuto Digitale")) {
+                String price = singleVariantText.getElementsByClass("prodPriceCont").get(0).text();
+                
+                this.digitalPrice = stringToPrice(price);
+            }
         }
         
         if ( newPrice != null && !newPrice.equals(newPriceCopy) )
@@ -427,13 +439,17 @@ public class Game extends GamePreview implements Serializable {
         
         if ( preorderPrice != null && !preorderPrice.equals(preorderPriceCopy) )
             changes = true;
+        
+        if ( digitalPrice != null && !digitalPrice.equals(digitalPriceCopy) )
+            changes = true;
 
         return changes;
     }
-
-    private double stringToPrice(String price) {
+    
+    protected static double stringToPrice(String price) {
+        
         price = price.replace(".", "");     // <-- to handle prices over 999,99€ like 1.249,99€
-        price = price.replace(',', '.');    // <-- to convert the price in a string which can be parsed
+        price = price.replace(',', '.');    // <-- to convert the price in a string that can be parsed
         price = price.replace("€", "");     // <-- remove unecessary characters
         price = price.replace("CHF", "");   // <-- remove unecessary characters
         price = price.trim();               // <-- remove remaning spaces

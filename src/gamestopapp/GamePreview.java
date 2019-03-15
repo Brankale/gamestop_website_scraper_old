@@ -2,7 +2,6 @@ package gamestopapp;
 
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
-import java.net.SocketTimeoutException;
 import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.List;
@@ -21,7 +20,8 @@ public class GamePreview implements Comparable<GamePreview> {
     
     protected Double newPrice;
     protected Double usedPrice;
-    protected Double preorderPrice;    
+    protected Double preorderPrice;
+    protected Double digitalPrice;
     protected List<Double> olderNewPrices;
     protected List<Double> olderUsedPrices;
     
@@ -66,6 +66,14 @@ public class GamePreview implements Comparable<GamePreview> {
     
     public boolean hasPreorderPrice() {
         return preorderPrice != null;
+    }
+
+    public Double getDigitalPrice() {
+        return digitalPrice;
+    }
+    
+    public boolean hasDigitalPrice() {
+        return digitalPrice != null;
     }
 
     public List<Double> getOlderNewPrices() {
@@ -136,7 +144,7 @@ public class GamePreview implements Comparable<GamePreview> {
 
     @Override
     public String toString() {
-        return "GamePreview{" + "id=" + id + ", title=" + title + ", publisher=" + publisher + ", platform=" + platform + ", newPrice=" + newPrice + ", usedPrice=" + usedPrice + ", preorderPrice=" + preorderPrice + ", olderNewPrices=" + olderNewPrices + ", olderUsedPrices=" + olderUsedPrices + '}';
+        return "GamePreview{" + "id=" + id + ", title=" + title + ", publisher=" + publisher + ", platform=" + platform + ", newPrice=" + newPrice + ", usedPrice=" + usedPrice + ", preorderPrice=" + preorderPrice + ", digitalPrice=" + digitalPrice + ", olderNewPrices=" + olderNewPrices + ", olderUsedPrices=" + olderUsedPrices + ", pegi=" + pegi + ", releaseDate=" + releaseDate + '}';
     }
 
     @Override
@@ -145,37 +153,92 @@ public class GamePreview implements Comparable<GamePreview> {
     }
     
     public static List<GamePreview> searchGame(String searchedGameName) throws UnsupportedEncodingException, IOException {
+
+        String url = "https://www.gamestop.it/SearchResult/QuickSearch?q=" + URLEncoder.encode(searchedGameName, "UTF-8");
         
-        List<GamePreview> searchedGames = new ArrayList();
-        
-        String site = "https://www.gamestop.it";        
-        String path = "/SearchResult/QuickSearch";        
-        String query = "?q=" + URLEncoder.encode(searchedGameName, "UTF-8");
-        String url = site + path + query;
-        
-        Document doc = null;
-        
-        try {
-            doc = Jsoup.connect(url).get();
-        } catch (SocketTimeoutException ste) {
-            Log.error("GamePreview","SocketTimeoutException", url);
-            return null;
-        }
-        
+        Document doc = Jsoup.connect(url).get();
         Element body = doc.body();
         
         Elements gamesList = body.getElementsByClass("singleProduct");
         Log.info("GamePreview", "search completed", gamesList.size()+" results" );
         
-        for ( Element game : gamesList ) {
+        // if there are no games
+        if ( gamesList.isEmpty() ){
+            return null;
+        }
+        
+        List<GamePreview> searchedGames = new ArrayList();
+
+        for ( Element game : gamesList )
+        {
             GamePreview gamePreview = new GamePreview();
             
+            gamePreview.id = game.getElementsByClass("prodImg").get(0).attr("href").split("/")[3];
             gamePreview.title = game.getElementsByTag("h3").get(0).text();
-            gamePreview.platform = game.getElementsByTag("h3").get(0).getElementsByTag("a").get(0).absUrl("href").split("/")[3];
+            //gamePreview.publisher;
+            gamePreview.platform = game.getElementsByTag("h3").get(0).getElementsByTag("a").get(0).attr("href").split("/")[3];
+
+            
+            Elements e = game.getElementsByClass("buyNew");
+            if ( !e.isEmpty() ){                
+                if ( e.get(0).getElementsByClass("discounted").isEmpty() ){
+                    String price = e.get(0).text();
+                    System.out.println(price);
+                    gamePreview.newPrice = stringToPrice(price);
+                } else {
+                    /*
+                    String price = e.get(0).text();
+                    gamePreview.newPrice = stringToPrice(price);
+                    gamePreview.olderNewPrices = new ArrayList<>();
+                    gamePreview.olderNewPrices.add(stringToPrice(price));
+                    */
+                }
+            }
+            
+            e = game.getElementsByClass("buyUsed");
+            if ( !e.isEmpty() ){
+                String price = e.get(0).text();
+                gamePreview.usedPrice = stringToPrice(price);
+            }
+            
+            e = game.getElementsByClass("buyPresell");
+            if ( !e.isEmpty() ){
+                String price = e.get(0).text();
+                gamePreview.preorderPrice = stringToPrice(price);
+            }
+            
+            e = game.getElementsByClass("buyDLC");
+            if ( !e.isEmpty() ){
+                String price = e.get(0).text();
+                gamePreview.digitalPrice = stringToPrice(price);
+            }
+            
+            
+            //gamePreview.olderNewPrices;
+            //gamePreview.olderUsedPrices;
+            
+            gamePreview.pegi = new ArrayList<>();
+            gamePreview.pegi.add( game.getElementsByTag("p").get(0).text() );
+            gamePreview.releaseDate = game.getElementsByTag("li").get(0).text().split(": ")[1];
+            
+            //cover
+            
             searchedGames.add(gamePreview);
         }
         
         return searchedGames;
+    }
+    
+    protected static double stringToPrice(String price) {
+        
+        price = price.split(" ")[1];        // <-- example "Nuovo 19.99€"
+        price = price.replace(".", "");     // <-- to handle prices over 999,99€ like 1.249,99€
+        price = price.replace(',', '.');    // <-- to convert the price in a string that can be parsed
+        price = price.replace("€", "");     // <-- remove unecessary characters
+        price = price.replace("CHF", "");   // <-- remove unecessary characters
+        price = price.trim();               // <-- remove remaning spaces
+        
+        return Double.parseDouble(price);
     }
     
 }

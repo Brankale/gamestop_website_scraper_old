@@ -2,6 +2,7 @@ package gamestopapp;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.net.ssl.SSLException;
@@ -10,7 +11,17 @@ public class GamestopApp {
 
     public static void main(String[] args) throws IOException {       
         
-        downloadAll();
+        //Game g = downloadGame("126336");
+        //System.out.println(g);
+        
+        
+        List<GamePreview> list = GamePreview.searchGame("pokemon");
+        
+        for ( GamePreview gp : list ){
+            System.out.println(gp);
+        }
+        
+        //downloadAll();
         
     }
     
