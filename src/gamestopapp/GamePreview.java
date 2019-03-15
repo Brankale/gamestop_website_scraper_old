@@ -5,7 +5,7 @@ import java.util.Objects;
 
 public class GamePreview implements Comparable<GamePreview> {
     
-    public static final String PATH = "tmp/";
+    //public static final String PATH = "tmp/";
     
     protected String id;
     protected String title;
@@ -171,6 +171,10 @@ public class GamePreview implements Comparable<GamePreview> {
         return releaseDate;
     }
     
+    public boolean hasReleaseDate() {
+        return releaseDate != null;
+    }
+    
     public String getURL() {
         return getURLByID(id);
     }
@@ -180,7 +184,7 @@ public class GamePreview implements Comparable<GamePreview> {
     }
     
     public String getGameDirectory() {
-        return PATH + id + "/";
+        return DirectoryManager.getDirectory(id) + id + "/";
     }
     
     public String getCover() {

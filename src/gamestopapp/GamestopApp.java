@@ -2,6 +2,7 @@ package gamestopapp;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Scanner;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.net.ssl.SSLException;
@@ -10,17 +11,35 @@ public class GamestopApp {
 
     public static void main(String[] args) {       
         
-        Game game = downloadGame("190");
-        GamePreview gp = game;
-        System.out.println(gp.id);
+        Scanner in = new Scanner(System.in);
         
+        //Game g1 = downloadGame("110143");
+        //Game g1 = downloadGame("126567");
+        Game g1 = downloadGame("111064");
         
+        /*
+        System.out.println( g1.getGameDirectory() );       
+        System.out.println("Premi un pulsante...");
+        in.next();
+        System.out.println( g1.getGameDirectory() );
+        */
         
+        System.out.println( "cover: " + g1.hasCover() );
+        System.out.println( "gallery: " + g1.hasGallery() );
         
-        //System.out.println( game.hasGallery() );
-        //downloadAll();
+        System.out.println( "new: " + g1.hasNewPrice() );
+        System.out.println( "used: " + g1.hasUsedPrice() );
+        System.out.println( "preorder: " + g1.hasPreorderPrice() );
         
+        System.out.println( "new old: " + g1.hasOlderNewPrices() );
+        System.out.println( "used old: " + g1.hasOlderUsedPrices() );
         
+        System.out.println( "description: " + g1.hasDescription() );
+        System.out.println( "genres: " + g1.hasGenres() );
+        System.out.println( "official site: " + g1.hasOfficialSite() );
+        System.out.println( "players: " + g1.hasPlayers() );
+        System.out.println( "promo: " + g1.hasPromo() );
+        System.out.println( "release date: " + g1.hasReleaseDate() );
     }
     
     /**

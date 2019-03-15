@@ -24,7 +24,7 @@ import org.jsoup.select.Elements;
 
 public class Game extends GamePreview implements Serializable {
     
-    public static final String PATH = "userData/";
+    //public static final String PATH = "userData/";
 
     private List<String> genres;
     private String officialSite;
@@ -113,7 +113,7 @@ public class Game extends GamePreview implements Serializable {
     
     @Override
     public String getGameDirectory() {
-        return PATH + id + "/";
+        return DirectoryManager.getDirectory(id) + id + "/";
     }
     
     public String getGalleryDirectory() {
@@ -369,9 +369,8 @@ public class Game extends GamePreview implements Serializable {
         this.newPrice = null;
         this.usedPrice = null;
         this.preorderPrice = null;
-        
-        this.olderNewPrices = new ArrayList<>();
-        this.olderUsedPrices = new ArrayList<>();
+        this.olderNewPrices = null;
+        this.olderUsedPrices = null;
 
         for (Element singleVariantDetails : buySection.getElementsByClass("singleVariantDetails")) {
             
@@ -387,6 +386,11 @@ public class Game extends GamePreview implements Serializable {
                 this.newPrice = stringToPrice(price);
 
                 for (Element olderPrice : singleVariantText.getElementsByClass("olderPrice")) {
+                    
+                    if ( this.olderNewPrices == null ){
+                        this.olderNewPrices = new ArrayList<>();
+                    }
+                    
                     price = olderPrice.text();
                     this.olderNewPrices.add(stringToPrice(price));
                 }
@@ -398,6 +402,11 @@ public class Game extends GamePreview implements Serializable {
                 this.usedPrice = stringToPrice(price);
 
                 for (Element olderPrice : singleVariantText.getElementsByClass("olderPrice")) {
+                    
+                    if ( this.olderUsedPrices == null ){
+                        this.olderUsedPrices = new ArrayList<>();
+                    }
+                    
                     price = olderPrice.text();
                     this.olderUsedPrices.add(stringToPrice(price));
                 }
@@ -581,7 +590,7 @@ public class Game extends GamePreview implements Serializable {
      */
     private void mkdir() {
         // create userData folder if doesn't exist
-        File dir = new File(PATH);
+        File dir = new File(DirectoryManager.TEMP_DIR);
 
         if (!dir.exists()) {
             dir.mkdir();
