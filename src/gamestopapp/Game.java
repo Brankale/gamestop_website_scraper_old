@@ -350,16 +350,7 @@ public class Game extends GamePreview implements Serializable {
             buySection = buySection.getElementsByClass("buySection").get(0);
         }
         
-        List<Double> olderNewPricesCopy = olderNewPrices;
-        List<Double> olderUsedPricesCopy = olderUsedPrices;
-        
-        if ( olderNewPricesCopy == null )
-            olderNewPricesCopy = new ArrayList<>();
-        
-        if ( olderUsedPricesCopy == null )
-            olderUsedPricesCopy = new ArrayList<>();
-        
-        // I make a copy before overwriting them
+        // I make a copy of all the prices before overwriting them
         Double newPriceCopy = this.newPrice;
         Double usedPriceCopy = this.usedPrice;
         Double preorderPriceCopy = this.preorderPrice;
@@ -426,12 +417,6 @@ public class Game extends GamePreview implements Serializable {
             changes = true;
         
         if ( preorderPrice != null && !preorderPrice.equals(preorderPriceCopy) )
-            changes = true;
-        
-        if ( !olderNewPricesCopy.equals(olderNewPrices) )
-            changes = true;
-        
-        if ( !olderUsedPricesCopy.equals(olderUsedPrices) )
             changes = true;
 
         return changes;
