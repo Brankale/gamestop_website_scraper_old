@@ -2,7 +2,6 @@ package gamestopapp;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.net.ssl.SSLException;
@@ -11,11 +10,7 @@ public class GamestopApp {
 
     public static void main(String[] args) throws IOException {       
         
-        List<GamePreview> list = GamePreview.searchGame("tomb raider");
-        
-        for ( GamePreview gp : list ){
-            System.out.println(gp);
-        }
+        downloadAll();
         
     }
     
@@ -36,6 +31,8 @@ public class GamestopApp {
             Log.error("Main", "Tempo di connessione scaduto");
         } catch ( IOException ex ) {
             Log.error("Main", "Errore durante la connessione");
+        } catch ( IsJustAFuckingGadgetException ex ) {
+            Log.warning("Main", ex.toString() );
         } catch ( GameException ex ) {
             Log.error("Main", "Creazione del gioco fallita");
         } catch ( Exception ex ){
