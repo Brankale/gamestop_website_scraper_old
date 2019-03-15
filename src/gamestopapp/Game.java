@@ -16,32 +16,17 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.nodes.TextNode;
 import org.jsoup.select.Elements;
 
-public class Game implements Comparable<Game>, Serializable {
+public class Game extends GamePreview implements Serializable {
 
-    private String id;
-    private String title;
-    private String publisher;
-    private String platform;
-    
-    private Double newPrice;
-    private Double usedPrice;
-    private Double preorderPrice;
-    
-    private List<Double> olderNewPrices;
-    private List<Double> olderUsedPrices;
-    
-    private List<String> pegi;
     private List<String> genres;
     private String officialSite;
     private String players;
-    private String releaseDate;
     private boolean validForPromotions;
     
     private List<Promo> promo;
@@ -59,7 +44,7 @@ public class Game implements Comparable<Game>, Serializable {
         updateMetadata(body);
         updatePrices(body);
 
-        Log.info("Game", "Game found", getTitle() );
+        Log.info("Game", "Game found", title);
         
         // the following information are not necessary to create a game
         updatePEGI(body);
@@ -71,84 +56,48 @@ public class Game implements Comparable<Game>, Serializable {
         updateGallery(body);
     }
 
-    public String getTitle() {
-        return title;
-    }
-
-    public String getPublisher() {
-        return publisher;
-    }
-
-    public String getPlatform() {
-        return platform;
-    }
-
-    public Double getNewPrice() {
-        return newPrice;
-    }
-
-    public List<Double> getOlderNewPrices() {
-        return olderNewPrices;
-    }
-
-    public Double getUsedPrice() {
-        return usedPrice;
-    }
-
-    public List<Double> getOlderUsedPrices() {
-        return olderUsedPrices;
-    }
-
-    public Double getPreorderPrice() {
-        return preorderPrice;
-    }
-
-    public List<String> getPegi() {
-        return pegi;
-    }
-
-    public String getID() {
-        return id;
-    }
-
     public List<String> getGenres() {
         return genres;
+    }
+    
+    public boolean hasGenres() {
+        return genres != null;
     }
 
     public String getOfficialSite() {
         return officialSite;
     }
+    
+    public boolean hasOfficialSite() {
+        return officialSite != null;
+    }
 
     public String getPlayers() {
         return players;
     }
-
-    public String getReleaseDate() {
-        return releaseDate;
-    }
-
-    public List<Promo> getPromo() {
-        return promo;
-    }
-
-    public String getDescription() {
-        return description;
+    
+    public boolean hasPlayers() {
+        return players != null;
     }
 
     public boolean isValidForPromotions() {
         return validForPromotions;
     }
-    
-    public static String getURLByID ( int id ) {
-        return "http://www.gamestop.it/Platform/Games/" + id;
+
+    public List<Promo> getPromo() {
+        return promo;
     }
     
-    public static String getURLByID ( String id ) {
-        return "http://www.gamestop.it/Platform/Games/" + id;
+    public boolean hasPromo() {
+        return promo != null;
+    }
+
+    public String getDescription() {
+        return description;
     }
     
-    public String getURL() {
-        return getURLByID( getID() );
+    public boolean hasDescription() {
+        return description != null;             // <-- controlla se vengono comunque inizializzati o rimangono nulli
     }
     
     public String getStoreAvailabilityURL () {
@@ -157,60 +106,44 @@ public class Game implements Comparable<Game>, Serializable {
         if ( getPreorderPrice() != null )
             return null;
         
-        return "www.gamestop.it/StoreLocator/Index?productId=" + getID();
+        return "www.gamestop.it/StoreLocator/Index?productId=" + getId();
     }
     
-    /**
-     * @return the directory where the games' folders are placed
-     */
-    public static String getDirectory () {
-        return "userData/";
+    @Override
+    public String getGameDirectory() {
+        return DirectoryManager.getDirectory(id) + id + "/";
     }
     
-    /**
-     * @return the game's directory
-     */
-    public String getGameDirectory () {
-        return getDirectory() + getID() + "/";
-    }
-    
-    /**
-     * @return the game's gallery directory
-     */
-    public String getGameGalleryDirectory () {
+    public String getGalleryDirectory() {
         return getGameDirectory() + "gallery/";
     }
-
-    public boolean hasPromo() {
-        return !promo.isEmpty();
-    }
-
+    
     @Override
-    public int hashCode() {
-        int hash = 5;
-        hash = 67 * hash + Objects.hashCode(this.id);
-        return hash;
+    public String getCover() {
+        return getGameDirectory() + "cover.jpg";
     }
-
-    @Override
-    public boolean equals(Object obj) {
-        if (this == obj) {
-            return true;
-        }
-        if (obj == null) {
-            return false;
-        }
-        if (getClass() != obj.getClass()) {
-            return false;
-        }
-        final Game other = (Game) obj;
-        return Objects.equals(this.id, other.id);
+    
+    public boolean hasCover() {
+        return new File(getCover()).exists();
     }
-
-    @Override
-    public int compareTo(Game game) {
-        return this.getTitle().compareTo(game.getTitle());
+    
+    public String[] getGallery() {
+        
+        // salvo i nomi delle immagini
+        File file = new File(getGalleryDirectory());
+        String[] images = file.list();
+        
+        // aggiungo il percorso al nome delle immagini
+        for ( int i=0; i<images.length; ++i ){
+            images[i] = getGalleryDirectory() + images[i];
+        }
+        
+        return images;
     }
+    
+    public boolean hasGallery() {
+        return new File(getGalleryDirectory()).exists();
+    }    
     
     @Override
     public String toString () {
@@ -415,16 +348,7 @@ public class Game implements Comparable<Game>, Serializable {
             buySection = buySection.getElementsByClass("buySection").get(0);
         }
         
-        List<Double> olderNewPricesCopy = olderNewPrices;
-        List<Double> olderUsedPricesCopy = olderUsedPrices;
-        
-        if ( olderNewPricesCopy == null )
-            olderNewPricesCopy = new ArrayList<>();
-        
-        if ( olderUsedPricesCopy == null )
-            olderUsedPricesCopy = new ArrayList<>();
-        
-        // I make a copy before overwriting them
+        // I make a copy of all the prices before overwriting them
         Double newPriceCopy = this.newPrice;
         Double usedPriceCopy = this.usedPrice;
         Double preorderPriceCopy = this.preorderPrice;
@@ -434,9 +358,8 @@ public class Game implements Comparable<Game>, Serializable {
         this.newPrice = null;
         this.usedPrice = null;
         this.preorderPrice = null;
-        
-        this.olderNewPrices = new ArrayList<>();
-        this.olderUsedPrices = new ArrayList<>();
+        this.olderNewPrices = null;
+        this.olderUsedPrices = null;
 
         for (Element singleVariantDetails : buySection.getElementsByClass("singleVariantDetails")) {
             
@@ -452,6 +375,11 @@ public class Game implements Comparable<Game>, Serializable {
                 this.newPrice = stringToPrice(price);
 
                 for (Element olderPrice : singleVariantText.getElementsByClass("olderPrice")) {
+                    
+                    if ( this.olderNewPrices == null ){
+                        this.olderNewPrices = new ArrayList<>();
+                    }
+                    
                     price = olderPrice.text();
                     this.olderNewPrices.add(stringToPrice(price));
                 }
@@ -463,6 +391,11 @@ public class Game implements Comparable<Game>, Serializable {
                 this.usedPrice = stringToPrice(price);
 
                 for (Element olderPrice : singleVariantText.getElementsByClass("olderPrice")) {
+                    
+                    if ( this.olderUsedPrices == null ){
+                        this.olderUsedPrices = new ArrayList<>();
+                    }
+                    
                     price = olderPrice.text();
                     this.olderUsedPrices.add(stringToPrice(price));
                 }
@@ -482,12 +415,6 @@ public class Game implements Comparable<Game>, Serializable {
             changes = true;
         
         if ( preorderPrice != null && !preorderPrice.equals(preorderPriceCopy) )
-            changes = true;
-        
-        if ( !olderNewPricesCopy.equals(olderNewPrices) )
-            changes = true;
-        
-        if ( !olderUsedPricesCopy.equals(olderUsedPrices) )
             changes = true;
 
         return changes;
@@ -646,7 +573,7 @@ public class Game implements Comparable<Game>, Serializable {
      */
     private void mkdir() {
         // create userData folder if doesn't exist
-        File dir = new File( getDirectory() );
+        File dir = new File(DirectoryManager.TEMP_DIR);
 
         if (!dir.exists()) {
             dir.mkdir();
@@ -682,7 +609,7 @@ public class Game implements Comparable<Game>, Serializable {
         try {
             downloadImage("cover.jpg", imgUrl, imgPath);
         } catch ( MalformedURLException ex ) {
-            Log.error("Game", "ID: " + getID() + " - malformed URL", imgUrl);
+            Log.error("Game", "ID: " + getId() + " - malformed URL", imgUrl);
         } catch (IOException ex) {
             Log.error("Game", "cannot download cover", imgUrl);
         }
@@ -704,7 +631,7 @@ public class Game implements Comparable<Game>, Serializable {
             mediaImages = mediaImages.getElementsByClass("mediaImages").get(0);
         }
 
-        String imgPath = getGameGalleryDirectory();
+        String imgPath = getGalleryDirectory();
 
         File dir = new File(imgPath);
         if (!dir.exists()) {
@@ -724,7 +651,7 @@ public class Game implements Comparable<Game>, Serializable {
             try {
                 downloadImage(imgName, imgUrl, imgPath);
             } catch ( MalformedURLException ex ) {
-                Log.error("Game", "ID: " + getID() + " - malformed URL", imgUrl);
+                Log.error("Game", "ID: " + getId() + " - malformed URL", imgUrl);
             } catch (IOException ex) {
                 Log.error("Game", "cannot download image", imgUrl);
             }

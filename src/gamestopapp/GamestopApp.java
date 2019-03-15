@@ -2,16 +2,20 @@ package gamestopapp;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.net.ssl.SSLException;
 
 public class GamestopApp {
 
-    public static void main(String[] args) {       
+    public static void main(String[] args) throws IOException {       
         
-        System.out.println( downloadGame("190") );
-        //downloadAll();
+        List<GamePreview> list = GamePreview.searchGame("tomb raider");
+        
+        for ( GamePreview gp : list ){
+            System.out.println(gp);
+        }
         
     }
     
