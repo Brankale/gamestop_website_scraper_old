@@ -23,8 +23,6 @@ import org.jsoup.nodes.TextNode;
 import org.jsoup.select.Elements;
 
 public class Game extends GamePreview implements Serializable {
-    
-    //public static final String PATH = "userData/";
 
     private List<String> genres;
     private String officialSite;
