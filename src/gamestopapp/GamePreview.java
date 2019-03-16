@@ -1,8 +1,14 @@
 package gamestopapp;
 
+import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.net.URLEncoder;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -175,8 +181,8 @@ public class GamePreview implements Comparable<GamePreview> {
             
             gamePreview.id = game.getElementsByClass("prodImg").get(0).attr("href").split("/")[3];
             gamePreview.title = game.getElementsByTag("h3").get(0).text();
-            //gamePreview.publisher;
-            gamePreview.platform = game.getElementsByTag("h3").get(0).getElementsByTag("a").get(0).attr("href").split("/")[3];
+            gamePreview.platform = game.getElementsByTag("h4").get(0).getElementsByTag("strong").text();
+            gamePreview.publisher = game.getElementsByTag("h4").get(0).textNodes().get(0).text();
 
             
             Elements e = game.getElementsByClass("buyNew");
@@ -196,10 +202,26 @@ public class GamePreview implements Comparable<GamePreview> {
             }
             
             e = game.getElementsByClass("buyUsed");
+            if ( !e.isEmpty() ){                
+                if ( e.get(0).getElementsByClass("discounted").isEmpty() ){
+                    String price = e.get(0).text();
+                    gamePreview.usedPrice = stringToPrice(price);
+                } else {
+                    /*
+                    String price = e.get(0).text();
+                    gamePreview.newPrice = stringToPrice(price);
+                    gamePreview.olderNewPrices = new ArrayList<>();
+                    gamePreview.olderNewPrices.add(stringToPrice(price));
+                    */
+                }
+            }
+            
+            /*
+            e = game.getElementsByClass("buyUsed");
             if ( !e.isEmpty() ){
                 String price = e.get(0).text();
                 gamePreview.usedPrice = stringToPrice(price);
-            }
+            }*/
             
             e = game.getElementsByClass("buyPresell");
             if ( !e.isEmpty() ){
@@ -221,7 +243,13 @@ public class GamePreview implements Comparable<GamePreview> {
             gamePreview.pegi.add( game.getElementsByTag("p").get(0).text() );
             gamePreview.releaseDate = game.getElementsByTag("li").get(0).text().split(": ")[1];
             
-            //cover
+            // create the necessary directories
+            gamePreview.mkdir();
+            
+            // download the cover
+            String imageUrl = game.getElementsByClass("prodImg").get(0).getElementsByTag("img").get(0).attr("data-llsrc");
+            String imageName = imageUrl.split("/")[6];
+            downloadImage("", imageUrl, gamePreview.getCover());
             
             searchedGames.add(gamePreview);
         }
@@ -239,6 +267,37 @@ public class GamePreview implements Comparable<GamePreview> {
         price = price.trim();               // <-- remove remaning spaces
         
         return Double.parseDouble(price);
+    }
+    
+    protected static final void downloadImage(String name, String imgUrl, String imgPath) throws MalformedURLException, IOException {
+        imgPath = imgPath + name;
+        File f = new File(imgPath);
+
+        // if the image already exists
+        if (f.exists()) {
+            Log.warning("Game", "img already exists", imgPath);
+            return;
+        }
+
+        InputStream in = new URL(imgUrl).openStream();
+        Files.copy(in, Paths.get(imgPath));
+        Log.info("Game", "image downloaded", imgUrl);
+    }
+    
+    protected void mkdir() {
+        // create userData folder if doesn't exist
+        File dir = new File(DirectoryManager.TEMP_DIR);
+
+        if (!dir.exists()) {
+            dir.mkdir();
+        }
+
+        // create the game folder if doesn't exist
+        dir = new File( getGameDirectory() );
+
+        if (!dir.exists()) {
+            dir.mkdir();
+        }
     }
     
 }

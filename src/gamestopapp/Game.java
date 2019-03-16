@@ -596,25 +596,6 @@ public class Game extends GamePreview implements Serializable {
     }
 
     /**
-     * Create the game folder
-     */
-    private void mkdir() {
-        // create userData folder if doesn't exist
-        File dir = new File(DirectoryManager.TEMP_DIR);
-
-        if (!dir.exists()) {
-            dir.mkdir();
-        }
-
-        // create the game folder if doesn't exist
-        dir = new File( getGameDirectory() );
-
-        if (!dir.exists()) {
-            dir.mkdir();
-        }
-    }
-
-    /**
      * 
      * @param prodImgMax 
      */
@@ -684,21 +665,6 @@ public class Game extends GamePreview implements Serializable {
             }
         }
 
-    }
-
-    private void downloadImage(String name, String imgUrl, String imgPath) throws MalformedURLException, IOException {
-        imgPath = imgPath + name;
-        File f = new File(imgPath);
-
-        // if the image already exists
-        if (f.exists()) {
-            Log.warning("Game", "img already exists", imgPath);
-            return;
-        }
-
-        InputStream in = new URL(imgUrl).openStream();
-        Files.copy(in, Paths.get(imgPath));
-        Log.info("Game", "image downloaded", imgUrl);
     }
 
     /**

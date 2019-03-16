@@ -15,10 +15,11 @@ public class GamestopApp {
         //System.out.println(g);
         
         
-        List<GamePreview> list = GamePreview.searchGame("pokemon");
+        List<GamePreview> list = GamePreview.searchGame("tomb raider");
         
         for ( GamePreview gp : list ){
-            System.out.println(gp);
+            System.out.println("platform: " + gp.getTitle());
+            System.out.println("publisher: " + gp.getPublisher() + "\n");
         }
         
         //downloadAll();
