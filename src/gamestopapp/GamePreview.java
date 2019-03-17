@@ -123,7 +123,11 @@ public class GamePreview implements Comparable<GamePreview> {
     }
     
     public String getCover() {
-        return getGameDirectory() + "cover.jpg";
+        return getGameDirectory() + "preview.jpg";
+    }
+    
+    public boolean hasCover() {
+        return new File(getCover()).exists();
     }
 
     @Override
@@ -181,15 +185,15 @@ public class GamePreview implements Comparable<GamePreview> {
             
             gamePreview.id = game.getElementsByClass("prodImg").get(0).attr("href").split("/")[3];
             gamePreview.title = game.getElementsByTag("h3").get(0).text();
-            gamePreview.platform = game.getElementsByTag("h4").get(0).getElementsByTag("strong").text();
-            gamePreview.publisher = game.getElementsByTag("h4").get(0).textNodes().get(0).text();
+            gamePreview.publisher = game.getElementsByTag("h4").get(0).getElementsByTag("strong").text();
+            gamePreview.platform = game.getElementsByTag("h4").get(0).textNodes().get(0).text().trim();
 
             
             Elements e = game.getElementsByClass("buyNew");
             if ( !e.isEmpty() ){                
                 if ( e.get(0).getElementsByClass("discounted").isEmpty() ){
                     String price = e.get(0).text();
-                    System.out.println(price);
+                    //System.out.println(price);
                     gamePreview.newPrice = stringToPrice(price);
                 } else {
                     /*

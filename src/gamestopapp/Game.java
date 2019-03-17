@@ -42,6 +42,7 @@ public class Game extends GamePreview implements Serializable {
         // these three methods are necessary to create a Game
         updateMainInfo(body);
         
+        /*
         // elimino tutti gli articoli che non mi interessano
         if ( this.platform.equals("Gadget") )
             throw new IsJustAFuckingGadgetException();
@@ -51,7 +52,7 @@ public class Game extends GamePreview implements Serializable {
             throw new IsJustAFuckingGadgetException();
         if ( this.platform.equals("Telefonia") )
             throw new IsJustAFuckingGadgetException();
-        
+*/
         updateMetadata(body);
         updatePrices(body);
 
@@ -134,10 +135,6 @@ public class Game extends GamePreview implements Serializable {
         return getGameDirectory() + "cover.jpg";
     }
     
-    public boolean hasCover() {
-        return new File(getCover()).exists();
-    }
-    
     public String[] getGallery() {
         
         // salvo i nomi delle immagini
@@ -168,12 +165,16 @@ public class Game extends GamePreview implements Serializable {
         
         if ( newPrice != null ){
             str += "newPrice = " + newPrice + "\n ";
-            str += "olderNewPrices = " + olderNewPrices + "\n ";
+            
+            if ( olderNewPrices != null )
+                str += "olderNewPrices = " + olderNewPrices + "\n ";
         }
         
         if ( usedPrice != null ){
             str += "usedPrice = " + usedPrice + "\n ";
-            str += "olderUsedPrices = " + olderUsedPrices + "\n ";
+            
+            if ( olderUsedPrices != null )
+                str += "olderUsedPrices = " + olderUsedPrices + "\n ";
         }
         
         if ( preorderPrice != null ){
@@ -216,12 +217,6 @@ public class Game extends GamePreview implements Serializable {
         return str;
     }
     
-
-    /**
-     * returned value checked
-     * @param prodTitle
-     * @return 
-     */
     private boolean updateMainInfo(Element prodTitle) {
         
         boolean changes = false;
@@ -254,11 +249,6 @@ public class Game extends GamePreview implements Serializable {
         return changes;
     }
     
-    /**
-     * returned value checked
-     * @param addedDet
-     * @return 
-     */
     private boolean updateMetadata(Element addedDet) {
         
         // the content is inside "addedDetInfo" which is inside "addedDet"
@@ -287,8 +277,8 @@ public class Game extends GamePreview implements Serializable {
             // important check to avoid IndexOutOfBound Exception
             if (e.childNodeSize() > 1) {
                 
-                // set item ID (DEPRECATED)
                 if (e.child(0).text().equals("Codice articolo")) {
+                    // set item ID (DEPRECATED)
                     continue;
                 }
 
@@ -330,8 +320,6 @@ public class Game extends GamePreview implements Serializable {
             }
         }
         
-        //Log.debug("Game", "Ok");
-        
         // search for a tag with this class name
         if ( !addedDet.getElementsByClass("ProdottoValido").isEmpty() ) {
             this.validForPromotions = true;
@@ -344,11 +332,6 @@ public class Game extends GamePreview implements Serializable {
         return changes;
     }
 
-    /**
-     * returned value checked
-     * @param buySection
-     * @return 
-     */
     private boolean updatePrices(Element buySection) {
         
         boolean changes = false;
@@ -457,11 +440,6 @@ public class Game extends GamePreview implements Serializable {
         return Double.parseDouble(price);
     }
 
-    /**
-     * returned value checked
-     * @param ageBlock
-     * @return 
-     */
     private boolean updatePEGI(Element ageBlock) {
         
         boolean changes = false;
@@ -508,11 +486,6 @@ public class Game extends GamePreview implements Serializable {
         return changes;
     }
 
-    /**
-     * returned value checked
-     * @param bonusBlock
-     * @return 
-     */
     private boolean updateBonus(Element bonusBlock) {
         
         boolean changes = false;
@@ -558,11 +531,6 @@ public class Game extends GamePreview implements Serializable {
         return changes;
     }
 
-    /**
-     * returned value checked
-     * @param prodDesc
-     * @return 
-     */
     private boolean updateDescription(Element prodDesc) {
         
         boolean changes = false;
@@ -595,10 +563,6 @@ public class Game extends GamePreview implements Serializable {
         return changes;
     }
 
-    /**
-     * 
-     * @param prodImgMax 
-     */
     private void updateCover(Element prodImgMax) {
 
         // if the element hasn't got the class name "prodImg max" 
@@ -623,10 +587,6 @@ public class Game extends GamePreview implements Serializable {
         }
     }
 
-    /**
-     *
-     * @param mediaImages
-     */
     private void updateGallery(Element mediaImages) {
 
         // if the element hasn't got the class name "mediaImages" 
@@ -667,10 +627,6 @@ public class Game extends GamePreview implements Serializable {
 
     }
 
-    /**
-     *
-     * @throws IOException
-     */
     public void update() throws IOException {
         
         Document html = Jsoup.connect( getURL() ).get();

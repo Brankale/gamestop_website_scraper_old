@@ -14,12 +14,23 @@ public class GamestopApp {
         //Game g = downloadGame("126336");
         //System.out.println(g);
         
+        // god of war
+        // horizon
         
-        List<GamePreview> list = GamePreview.searchGame("tomb raider");
+        List<GamePreview> list = GamePreview.searchGame("horizon");
         
         for ( GamePreview gp : list ){
-            System.out.println("platform: " + gp.getTitle());
-            System.out.println("publisher: " + gp.getPublisher() + "\n");
+            Game g = downloadGame(gp.getId());
+            System.out.println(g);
+            /*
+            System.out.println("title: \"" + gp.getTitle() + "\"");
+            System.out.println("platform: \"" + gp.getPlatform() +"\"" );
+            System.out.println("publisher: \"" + gp.getPublisher() + "\"\n");
+            */
+        }
+        
+        for ( GamePreview gp : list ){
+           
         }
         
         //downloadAll();

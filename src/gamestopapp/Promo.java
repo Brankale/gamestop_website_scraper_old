@@ -35,9 +35,9 @@ public class Promo {
     @Override
     public String toString() {
         if ( message == null )
-            return "Promo{" + "\n  header=" + header + ",\n  validity=" + validity + "  \n }";
+            return "Promo{" + "\n  header = " + header + ",\n  validity = " + validity + "  \n }";
         
-        return "Promo{" + "\n  header=" + header + ",\n  validity=" + validity + ",\n  message=" + message + ",\n  messageURL=" + messageURL + "  \n }";
+        return "Promo{" + "\n  header = " + header + ",\n  validity = " + validity + ",\n  message = " + message + ",\n  messageURL = " + messageURL + "  \n }";
     }
 
     @Override
