@@ -16,14 +16,33 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import javax.xml.XMLConstants;
+import javax.xml.bind.Validator;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.transform.OutputKeys;
+import javax.xml.transform.Transformer;
+import javax.xml.transform.TransformerFactory;
+import javax.xml.transform.dom.DOMSource;
+import javax.xml.transform.stream.StreamResult;
+import javax.xml.transform.stream.StreamSource;
+import javax.xml.validation.Schema;
+import javax.xml.validation.SchemaFactory;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.nodes.TextNode;
 import org.jsoup.select.Elements;
+import org.xml.sax.SAXException;
 
 public class Game extends GamePreview implements Serializable {
-
+    
+    /*
+        TO-DO: Capire dove mettere questa costante
+    */
+    public static final String SCHEMA_LOCATION = "schema.xsd";
+    
     private List<String> genres;
     private String officialSite;
     private String players;
@@ -735,6 +754,190 @@ public class Game extends GamePreview implements Serializable {
         
         Log.info("Game", "imported from binary");
         return game;
+    }
+    
+    public void exportXML() throws Exception{
+        
+        org.w3c.dom.Document doc = DocumentBuilderFactory.newInstance().newDocumentBuilder().newDocument();
+        
+        doc.appendChild(exportXML(doc));
+        
+        Transformer transformer = TransformerFactory.newInstance().newTransformer();
+        transformer.setOutputProperty(OutputKeys.INDENT, "yes");
+        transformer.setOutputProperty("{http://xml.apache.org/xslt}indent-amount", "2");
+        File f = new File("data.xml");
+        transformer.transform( new DOMSource(doc), new StreamResult(f));
+        
+        validate(f);
+    }
+    
+    public org.w3c.dom.Element exportXML(org.w3c.dom.Document doc){
+        
+        org.w3c.dom.Element game = doc.createElement("game");
+        
+        //Element Title
+        org.w3c.dom.Element elementTitle = doc.createElement("title");
+        elementTitle.setTextContent(this.title);
+        game.appendChild(elementTitle);
+        
+        /*
+        //Element URL
+        org.w3c.dom.Element elementUrl = doc.createElement("url");
+        elementUrl.setTextContent(this.url);
+        game.appendChild(elementUrl);*/
+        
+        //Element Publisher
+        org.w3c.dom.Element elementPublisher = doc.createElement("publisher");
+        elementPublisher.setTextContent(this.publisher);
+        game.appendChild(elementPublisher);
+        
+        //Element Platform
+        org.w3c.dom.Element elementPlatform = doc.createElement("platform");
+        elementPlatform.setTextContent(this.platform);
+        game.appendChild(elementPlatform);
+        
+        //Element Prices
+        org.w3c.dom.Element prices = doc.createElement("prices");
+        
+        //Element NewPrice
+        if(this.newPrice != null){
+            org.w3c.dom.Element elementNewPrice = doc.createElement("newPrice");
+            elementNewPrice.setTextContent(String.valueOf(this.newPrice));
+            prices.appendChild(elementNewPrice); 
+        }
+        
+        //Element OlderNewPrices
+        if(this.olderNewPrices != null && this.olderNewPrices.size() > 0){
+            org.w3c.dom.Element elementOlderNewPrice = doc.createElement("olderNewPrices");
+            
+            for(Double price : this.olderNewPrices){
+                org.w3c.dom.Element elementPrice = doc.createElement("price");
+                elementPrice.setTextContent(price.toString());
+                elementOlderNewPrice.appendChild(elementPrice);
+            }
+            
+            prices.appendChild(elementOlderNewPrice);
+        }
+        
+        //Element UsedPrice
+        if(this.usedPrice != null){
+            org.w3c.dom.Element elementUsedPrice = doc.createElement("usedPrice");
+            elementUsedPrice.setTextContent(String.valueOf(this.usedPrice));
+            prices.appendChild(elementUsedPrice); 
+        }
+        
+        //Element OlderUsedPrices
+        if(this.olderUsedPrices != null && this.olderUsedPrices.size() > 0){
+            org.w3c.dom.Element elementOlderUsedPrice = doc.createElement("olderUsedPrices");
+            
+            for(Double price : this.olderUsedPrices){
+                org.w3c.dom.Element elementPrice = doc.createElement("price");
+                elementPrice.setTextContent(price.toString());
+                elementOlderUsedPrice.appendChild(elementPrice);
+            }
+            
+            prices.appendChild(elementOlderUsedPrice);
+        }
+        
+        //Element PreOrderPrice
+        if(this.preorderPrice != null){
+            org.w3c.dom.Element elementPreorderPrice = doc.createElement("preorderPrice");
+            elementPreorderPrice.setTextContent(String.valueOf(this.preorderPrice));
+            prices.appendChild(elementPreorderPrice); 
+        }
+        
+        game.appendChild(prices);
+        
+        //Element Pegi
+        if(pegi != null){
+            org.w3c.dom.Element elementPegiList = doc.createElement("pegi");
+            for(String p : this.pegi){
+                org.w3c.dom.Element elementPegi = doc.createElement("type");
+                elementPegi.setTextContent(p);
+                elementPegiList.appendChild(elementPegi);
+            }
+            game.appendChild(elementPegiList);
+        }
+        
+        /*
+        //Element NewId
+        if(this.new_ID != null){
+            org.w3c.dom.Element elementNewId = doc.createElement("newId");
+            elementNewId.setTextContent(this.new_ID);
+            game.appendChild(elementNewId);
+        }
+        
+        //Element DigitalId
+        if(this.digital_ID != null){
+            org.w3c.dom.Element elementDigitalId = doc.createElement("digitalId");
+            elementDigitalId.setTextContent(this.digital_ID);
+            game.appendChild(elementDigitalId);
+        }
+        
+        //Element UsedId
+        if(this.used_ID != null){
+            org.w3c.dom.Element elementUsedId = doc.createElement("usedId");
+            elementUsedId.setTextContent(this.used_ID);
+            game.appendChild(elementUsedId);
+        }
+        
+        //Element PresellId
+        if(this.presell_ID!= null){
+            org.w3c.dom.Element elementPresellId = doc.createElement("presellId");
+            elementPresellId.setTextContent(this.presell_ID);
+            game.appendChild(elementPresellId);
+        }
+        */
+        
+        //Element Genres
+        if(this.genres != null && this.genres.size() > 0){
+            org.w3c.dom.Element elementGenres = doc.createElement("genres");
+            
+            for(String genre : this.genres){
+                org.w3c.dom.Element elementGenre = doc.createElement("genre");
+                elementGenre.setTextContent(genre);
+                elementGenres.appendChild(elementGenre);
+            }
+            
+            game.appendChild(elementGenres);
+        }
+        
+        //Element OfficialSite
+        if(this.officialSite != null){
+            org.w3c.dom.Element elementOfficialSite = doc.createElement("officialSite");
+            elementOfficialSite.setTextContent(this.officialSite);
+            game.appendChild(elementOfficialSite);
+        }
+        
+        //Element Players
+        if(this.players != null){
+            org.w3c.dom.Element elementPlayers = doc.createElement("players");
+            elementPlayers.setTextContent(this.players);
+            game.appendChild(elementPlayers);
+        }
+        
+        //Element ReleaseDate
+        org.w3c.dom.Element elementReleaseDate = doc.createElement("releaseDate");
+        elementReleaseDate.setTextContent(this.releaseDate);
+        game.appendChild(elementReleaseDate);
+        
+        //Element Description
+        if(this.description != null){
+            org.w3c.dom.Element description = doc.createElement("description");
+            description.setTextContent(this.description);
+            game.appendChild(description);
+        }
+        
+        return game;
+        
+    }
+    
+    public void validate(File f) throws SAXException, IOException{
+
+        Schema schema = SchemaFactory.newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI).newSchema(new File(SCHEMA_LOCATION));
+        javax.xml.validation.Validator validator = schema.newValidator();
+        validator.validate(new StreamSource(f));
+
     }
 
 }

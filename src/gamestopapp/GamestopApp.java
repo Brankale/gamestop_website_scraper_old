@@ -10,7 +10,13 @@ public class GamestopApp {
 
     public static void main(String[] args) throws IOException {       
         
-        downloadAll();
+        Game g = new Game("https://www.gamestop.it/Switch/Games/112983/mortal-kombat-11");
+        
+        try {
+            g.exportXML();
+        } catch (Exception ex) {
+            Logger.getLogger(GamestopApp.class.getName()).log(Level.SEVERE, null, ex);
+        }
         
     }
     
