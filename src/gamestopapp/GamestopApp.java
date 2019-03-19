@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.net.ssl.SSLException;
+import org.apache.commons.text.StringEscapeUtils;
 
 public class GamestopApp {
 

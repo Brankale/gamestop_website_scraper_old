@@ -27,6 +27,7 @@ public class GamePreview implements Comparable<GamePreview> {
     
     protected List<String> pegi;
     protected String releaseDate;
+    
 
     public String getId() {
         return id;

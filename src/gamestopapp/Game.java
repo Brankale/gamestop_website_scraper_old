@@ -21,6 +21,7 @@ import java.util.logging.Logger;
 import javax.xml.XMLConstants;
 import javax.xml.bind.Validator;
 import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.transform.OutputKeys;
 import javax.xml.transform.Transformer;
 import javax.xml.transform.TransformerFactory;
@@ -29,6 +30,7 @@ import javax.xml.transform.stream.StreamResult;
 import javax.xml.transform.stream.StreamSource;
 import javax.xml.validation.Schema;
 import javax.xml.validation.SchemaFactory;
+import org.apache.commons.text.StringEscapeUtils;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
@@ -50,6 +52,8 @@ public class Game extends GamePreview implements Serializable {
     
     private List<Promo> promo;
     private String description;
+    
+    private Game(){ }
 
     public Game(String url) throws IOException {
         
@@ -775,10 +779,13 @@ public class Game extends GamePreview implements Serializable {
         
         org.w3c.dom.Element game = doc.createElement("game");
         
+        game.setAttribute("id", this.id);
+        
         //Element Title
         org.w3c.dom.Element elementTitle = doc.createElement("title");
-        elementTitle.setTextContent(this.title);
+        elementTitle.setTextContent(StringEscapeUtils.escapeXml11(this.title));
         game.appendChild(elementTitle);
+        
         
         /*
         //Element URL
@@ -788,7 +795,7 @@ public class Game extends GamePreview implements Serializable {
         
         //Element Publisher
         org.w3c.dom.Element elementPublisher = doc.createElement("publisher");
-        elementPublisher.setTextContent(this.publisher);
+        elementPublisher.setTextContent(StringEscapeUtils.escapeXml11(this.publisher));
         game.appendChild(elementPublisher);
         
         //Element Platform
@@ -905,7 +912,7 @@ public class Game extends GamePreview implements Serializable {
         //Element OfficialSite
         if(this.officialSite != null){
             org.w3c.dom.Element elementOfficialSite = doc.createElement("officialSite");
-            elementOfficialSite.setTextContent(this.officialSite);
+            elementOfficialSite.setTextContent(StringEscapeUtils.escapeXml11(this.officialSite));
             game.appendChild(elementOfficialSite);
         }
         
@@ -924,7 +931,7 @@ public class Game extends GamePreview implements Serializable {
         //Element Description
         if(this.description != null){
             org.w3c.dom.Element description = doc.createElement("description");
-            description.setTextContent(this.description);
+            description.setTextContent(StringEscapeUtils.escapeXml11(this.description));
             game.appendChild(description);
         }
         
@@ -938,6 +945,40 @@ public class Game extends GamePreview implements Serializable {
         javax.xml.validation.Validator validator = schema.newValidator();
         validator.validate(new StreamSource(f));
 
+    }
+    
+    public Game importXML() throws SAXException, IOException, ParserConfigurationException{
+        File f = new File("data.xml");
+        validate(f);
+        org.w3c.dom.Document doc = DocumentBuilderFactory.newInstance().newDocumentBuilder().parse(f);
+        org.w3c.dom.Element game = doc.getDocumentElement();
+        return importXML(game);
+    }
+    
+    public Game importXML(org.w3c.dom.Element game){
+        Game g = new Game();
+        
+        g.title = StringEscapeUtils.unescapeXml(game.getElementsByTagName("title").item(0).getNodeValue());
+        g.publisher = StringEscapeUtils.unescapeXml(game.getElementsByTagName("publisher").item(0).getNodeValue());
+        g.platform = game.getElementsByTagName("platform").item(0).getNodeValue();
+        
+        org.w3c.dom.Element prices = (org.w3c.dom.Element)game.getElementsByTagName("prices").item(0);
+        
+        //NEW PRICE
+        org.w3c.dom.NodeList nl = prices.getElementsByTagName("newPrice");
+        if(nl.getLength() > 0){
+            org.w3c.dom.Element newPrice = (org.w3c.dom.Element)nl.item(0);
+            this.newPrice = Double.valueOf(newPrice.getNodeValue());
+        }
+        
+        //OLDER NEW PRICES
+        nl = prices.getElementsByTagName("olderNewPrices");
+        if(nl.getLength() > 0){
+            org.w3c.dom.Element olderNewPrices = (org.w3c.dom.Element)nl.item(0);
+            nl = olderNewPrices.getElementsByTagName("price");
+        }
+        
+        return g;
     }
 
 }
