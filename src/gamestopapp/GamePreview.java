@@ -154,7 +154,48 @@ public class GamePreview implements Comparable<GamePreview> {
 
     @Override
     public String toString() {
-        return "GamePreview{" + "id=" + id + ", title=" + title + ", publisher=" + publisher + ", platform=" + platform + ", newPrice=" + newPrice + ", usedPrice=" + usedPrice + ", preorderPrice=" + preorderPrice + ", digitalPrice=" + digitalPrice + ", olderNewPrices=" + olderNewPrices + ", olderUsedPrices=" + olderUsedPrices + ", pegi=" + pegi + ", releaseDate=" + releaseDate + '}';
+        
+        String str = new String();        
+        str += "GamePreview{\n";
+        
+        if ( id != null )
+            str += " id = " + id + "\n";
+        
+        if ( title != null )
+            str += " title = " + title + "\n";
+        
+        if ( publisher != null )
+            str += " publisher = " + publisher + "\n";
+        
+        if ( platform != null )
+            str += " platform = " + platform + "\n";
+        
+        if ( newPrice != null )
+            str += " newPrice = " + newPrice + "\n";
+        
+        if ( usedPrice != null )
+            str += " usedPrice = " + usedPrice + "\n";
+        
+        if ( preorderPrice != null )
+            str += " preorderPrice = " + preorderPrice + "\n";
+        
+        if ( digitalPrice != null )
+            str += " digitalPrice = " + digitalPrice + "\n";
+        
+        if ( olderNewPrices != null )
+            str += " olderNewPrices = " + olderNewPrices + "\n";
+        
+        if ( olderUsedPrices != null )
+            str += " olderUsedPrices = " + olderUsedPrices + "\n";
+        
+        if ( pegi != null )
+            str += " pegi = " + pegi + "\n";
+        
+        if ( releaseDate != null )
+            str += " releaseDate = " + releaseDate + "\n";
+        
+        str += "}";
+        return str;
     }
 
     @Override
@@ -187,45 +228,61 @@ public class GamePreview implements Comparable<GamePreview> {
             gamePreview.title = game.getElementsByTag("h3").get(0).text();
             gamePreview.publisher = game.getElementsByTag("h4").get(0).getElementsByTag("strong").text();
             gamePreview.platform = game.getElementsByTag("h4").get(0).textNodes().get(0).text().trim();
-
             
             Elements e = game.getElementsByClass("buyNew");
             if ( !e.isEmpty() ){                
-                if ( e.get(0).getElementsByClass("discounted").isEmpty() ){
+                Elements prices = e.get(0).getElementsByTag("em");
+                
+                // if there's just one price
+                // NB: <em> tag is present only if there are multiple prices
+                if ( prices.isEmpty() ){
                     String price = e.get(0).text();
-                    //System.out.println(price);
                     gamePreview.newPrice = stringToPrice(price);
-                } else {
-                    /*
-                    String price = e.get(0).text();
-                    gamePreview.newPrice = stringToPrice(price);
+                }
+                
+                // if more than one price is present
+                if ( prices.size() > 1 )
                     gamePreview.olderNewPrices = new ArrayList<>();
-                    gamePreview.olderNewPrices.add(stringToPrice(price));
-                    */
+                
+                // memorize the prices
+                for ( int i=0; i<prices.size(); ++i ){                    
+                    String price = prices.get(i).text();
+                    
+                    if ( i==0 ){
+                        gamePreview.newPrice = stringToPrice(price);
+                    } else {
+                        gamePreview.olderNewPrices.add(stringToPrice(price));
+                    }                    
                 }
             }
             
             e = game.getElementsByClass("buyUsed");
             if ( !e.isEmpty() ){                
-                if ( e.get(0).getElementsByClass("discounted").isEmpty() ){
+                Elements prices = e.get(0).getElementsByTag("em");
+                
+                // if there's just one price
+                // NB: <em> tag is present only if there are multiple prices
+                if ( prices.isEmpty() ){
                     String price = e.get(0).text();
                     gamePreview.usedPrice = stringToPrice(price);
-                } else {
-                    /*
-                    String price = e.get(0).text();
-                    gamePreview.newPrice = stringToPrice(price);
-                    gamePreview.olderNewPrices = new ArrayList<>();
-                    gamePreview.olderNewPrices.add(stringToPrice(price));
-                    */
+                }
+                
+                // if more than one price is present
+                if ( prices.size() > 1 ) {
+                    gamePreview.olderUsedPrices = new ArrayList<>();
+                
+                    // memorize the prices
+                    for ( int i=0; i<prices.size(); ++i ){                    
+                        String price = prices.get(i).text();
+
+                        if ( i==0 ){
+                            gamePreview.usedPrice = stringToPrice(price);
+                        } else {
+                            gamePreview.olderUsedPrices.add(stringToPrice(price));
+                        }                    
+                    }
                 }
             }
-            
-            /*
-            e = game.getElementsByClass("buyUsed");
-            if ( !e.isEmpty() ){
-                String price = e.get(0).text();
-                gamePreview.usedPrice = stringToPrice(price);
-            }*/
             
             e = game.getElementsByClass("buyPresell");
             if ( !e.isEmpty() ){
@@ -238,10 +295,6 @@ public class GamePreview implements Comparable<GamePreview> {
                 String price = e.get(0).text();
                 gamePreview.digitalPrice = stringToPrice(price);
             }
-            
-            
-            //gamePreview.olderNewPrices;
-            //gamePreview.olderUsedPrices;
             
             gamePreview.pegi = new ArrayList<>();
             gamePreview.pegi.add( game.getElementsByTag("p").get(0).text() );
@@ -261,14 +314,21 @@ public class GamePreview implements Comparable<GamePreview> {
         return searchedGames;
     }
     
-    protected static double stringToPrice(String price) {
+    protected static double stringToPrice(String price) {        
         
+        // example "Nuovo 19.99€"
+        price = price.replaceAll("[^0-9.,]","");    // remove all the characters except for numbers, ',' and '.'
+        price = price.replace(".", "");             // to handle prices over 999,99€ like 1.249,99€
+        price = price.replace(',', '.');            // to convert the price in a string that can be parsed
+        
+        /* OLD 
         price = price.split(" ")[1];        // <-- example "Nuovo 19.99€"
         price = price.replace(".", "");     // <-- to handle prices over 999,99€ like 1.249,99€
         price = price.replace(',', '.');    // <-- to convert the price in a string that can be parsed
         price = price.replace("€", "");     // <-- remove unecessary characters
         price = price.replace("CHF", "");   // <-- remove unecessary characters
         price = price.trim();               // <-- remove remaning spaces
+        */
         
         return Double.parseDouble(price);
     }

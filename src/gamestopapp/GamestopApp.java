@@ -11,29 +11,12 @@ public class GamestopApp {
 
     public static void main(String[] args) throws IOException {       
         
-        //Game g = downloadGame("126336");
-        //System.out.println(g);
+        // WRITE HERE THE TEST CODE
         
-        // god of war
-        // horizon
+        List<GamePreview> list = GamePreview.searchGame("beyond");
+        for ( GamePreview gp : list )
+            System.out.println(gp + "\n");
         
-        List<GamePreview> list = GamePreview.searchGame("horizon");
-        
-        for ( GamePreview gp : list ){
-            Game g = downloadGame(gp.getId());
-            System.out.println(g);
-            /*
-            System.out.println("title: \"" + gp.getTitle() + "\"");
-            System.out.println("platform: \"" + gp.getPlatform() +"\"" );
-            System.out.println("publisher: \"" + gp.getPublisher() + "\"\n");
-            */
-        }
-        
-        for ( GamePreview gp : list ){
-           
-        }
-        
-        //downloadAll();
         
     }
     
@@ -54,7 +37,7 @@ public class GamestopApp {
             Log.error("Main", "Tempo di connessione scaduto");
         } catch ( IOException ex ) {
             Log.error("Main", "Errore durante la connessione");
-        } catch ( IsJustAFuckingGadgetException ex ) {
+        } catch ( IsNotAGameException ex ) {
             Log.warning("Main", ex.toString() );
         } catch ( GameException ex ) {
             Log.error("Main", "Creazione del gioco fallita");

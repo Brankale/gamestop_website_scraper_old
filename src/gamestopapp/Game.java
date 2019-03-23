@@ -42,17 +42,17 @@ public class Game extends GamePreview implements Serializable {
         // these three methods are necessary to create a Game
         updateMainInfo(body);
         
-        /*
+        
         // elimino tutti gli articoli che non mi interessano
         if ( this.platform.equals("Gadget") )
-            throw new IsJustAFuckingGadgetException();
+            throw new IsNotAGameException();
         if ( this.platform.equals("Varie") )
-            throw new IsJustAFuckingGadgetException();
+            throw new IsNotAGameException();
         if ( this.platform.equals("Cards") )
-            throw new IsJustAFuckingGadgetException();
+            throw new IsNotAGameException();
         if ( this.platform.equals("Telefonia") )
-            throw new IsJustAFuckingGadgetException();
-*/
+            throw new IsNotAGameException();
+
         updateMetadata(body);
         updatePrices(body);
 
