@@ -125,7 +125,7 @@ public class GamePreview implements Comparable<GamePreview> {
     }
     
     public String getCover() {
-        return getGameDirectory() + "preview.jpg";
+        return getGameDirectory() + "cover.jpg";
     }
     
     public boolean hasCover() {
@@ -307,7 +307,7 @@ public class GamePreview implements Comparable<GamePreview> {
             
             // download the cover
             String imageUrl = game.getElementsByClass("prodImg").get(0).getElementsByTag("img").get(0).attr("data-llsrc");
-            String imageName = imageUrl.split("/")[6];
+            imageUrl = imageUrl.replace("2med", "3max");
             downloadImage("", imageUrl, gamePreview.getCover());
             
             searchedGames.add(gamePreview);

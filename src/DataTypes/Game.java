@@ -6,10 +6,13 @@ import gamestopapp.IsNotAGameException;
 import gamestopapp.Log;
 import java.io.EOFException;
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.io.Serializable;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -132,10 +135,12 @@ public class Game extends GamePreview implements Serializable {
         return getGameDirectory() + "gallery/";
     }
     
+    /*
     @Override
     public String getCover() {
         return getGameDirectory() + "cover.jpg";
     }
+    */
     
     public String[] getGallery() {
         

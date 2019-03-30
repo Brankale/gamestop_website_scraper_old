@@ -17,8 +17,11 @@ public class GamestopApp {
         // WRITE HERE THE TEST CODE
         
         List<GamePreview> list = GamePreview.searchGame("beyond");
-        for ( GamePreview gp : list )
-            System.out.println(gp + "\n");
+        
+        for ( GamePreview gp : list ){
+            Game g = downloadGame( gp.getId() );
+            //System.out.println(gp);
+        }
         
         
     }
