@@ -42,16 +42,17 @@ public class Game extends GamePreview implements Serializable {
         // these three methods are necessary to create a Game
         updateMainInfo(body);
         
+        
         // elimino tutti gli articoli che non mi interessano
         if ( this.platform.equals("Gadget") )
-            throw new IsJustAFuckingGadgetException();
+            throw new IsNotAGameException();
         if ( this.platform.equals("Varie") )
-            throw new IsJustAFuckingGadgetException();
+            throw new IsNotAGameException();
         if ( this.platform.equals("Cards") )
-            throw new IsJustAFuckingGadgetException();
+            throw new IsNotAGameException();
         if ( this.platform.equals("Telefonia") )
-            throw new IsJustAFuckingGadgetException();
-        
+            throw new IsNotAGameException();
+
         updateMetadata(body);
         updatePrices(body);
 
@@ -134,10 +135,6 @@ public class Game extends GamePreview implements Serializable {
         return getGameDirectory() + "cover.jpg";
     }
     
-    public boolean hasCover() {
-        return new File(getCover()).exists();
-    }
-    
     public String[] getGallery() {
         
         // salvo i nomi delle immagini
@@ -168,16 +165,24 @@ public class Game extends GamePreview implements Serializable {
         
         if ( newPrice != null ){
             str += "newPrice = " + newPrice + "\n ";
-            str += "olderNewPrices = " + olderNewPrices + "\n ";
+            
+            if ( olderNewPrices != null )
+                str += "olderNewPrices = " + olderNewPrices + "\n ";
         }
         
         if ( usedPrice != null ){
             str += "usedPrice = " + usedPrice + "\n ";
-            str += "olderUsedPrices = " + olderUsedPrices + "\n ";
+            
+            if ( olderUsedPrices != null )
+                str += "olderUsedPrices = " + olderUsedPrices + "\n ";
         }
         
         if ( preorderPrice != null ){
             str += "preorderPrice = " + preorderPrice + "\n ";
+        }
+        
+        if ( digitalPrice != null ){
+            str += "digitalPrice = " + digitalPrice + "\n ";
         }
         
         if ( promo != null ){
@@ -212,12 +217,6 @@ public class Game extends GamePreview implements Serializable {
         return str;
     }
     
-
-    /**
-     * returned value checked
-     * @param prodTitle
-     * @return 
-     */
     private boolean updateMainInfo(Element prodTitle) {
         
         boolean changes = false;
@@ -250,11 +249,6 @@ public class Game extends GamePreview implements Serializable {
         return changes;
     }
     
-    /**
-     * returned value checked
-     * @param addedDet
-     * @return 
-     */
     private boolean updateMetadata(Element addedDet) {
         
         // the content is inside "addedDetInfo" which is inside "addedDet"
@@ -283,8 +277,8 @@ public class Game extends GamePreview implements Serializable {
             // important check to avoid IndexOutOfBound Exception
             if (e.childNodeSize() > 1) {
                 
-                // set item ID (DEPRECATED)
                 if (e.child(0).text().equals("Codice articolo")) {
+                    // set item ID (DEPRECATED)
                     continue;
                 }
 
@@ -326,8 +320,6 @@ public class Game extends GamePreview implements Serializable {
             }
         }
         
-        //Log.debug("Game", "Ok");
-        
         // search for a tag with this class name
         if ( !addedDet.getElementsByClass("ProdottoValido").isEmpty() ) {
             this.validForPromotions = true;
@@ -340,11 +332,6 @@ public class Game extends GamePreview implements Serializable {
         return changes;
     }
 
-    /**
-     * returned value checked
-     * @param buySection
-     * @return 
-     */
     private boolean updatePrices(Element buySection) {
         
         boolean changes = false;
@@ -363,12 +350,14 @@ public class Game extends GamePreview implements Serializable {
         Double newPriceCopy = this.newPrice;
         Double usedPriceCopy = this.usedPrice;
         Double preorderPriceCopy = this.preorderPrice;
+        Double digitalPriceCopy = this.digitalPrice;
                 
         // if the prices are removed they don't change
         // example: newPrice is 20€ > then newPrice no longer exist > newPrice is still 20€
         this.newPrice = null;
         this.usedPrice = null;
         this.preorderPrice = null;
+        this.digitalPrice = null;
         this.olderNewPrices = null;
         this.olderUsedPrices = null;
 
@@ -417,6 +406,12 @@ public class Game extends GamePreview implements Serializable {
                 
                 this.preorderPrice = stringToPrice(price);
             }
+            
+            if (singleVariantText.getElementsByClass("variantName").get(0).text().equals("Contenuto Digitale")) {
+                String price = singleVariantText.getElementsByClass("prodPriceCont").get(0).text();
+                
+                this.digitalPrice = stringToPrice(price);
+            }
         }
         
         if ( newPrice != null && !newPrice.equals(newPriceCopy) )
@@ -427,13 +422,17 @@ public class Game extends GamePreview implements Serializable {
         
         if ( preorderPrice != null && !preorderPrice.equals(preorderPriceCopy) )
             changes = true;
+        
+        if ( digitalPrice != null && !digitalPrice.equals(digitalPriceCopy) )
+            changes = true;
 
         return changes;
     }
-
-    private double stringToPrice(String price) {
+    
+    protected static double stringToPrice(String price) {
+        
         price = price.replace(".", "");     // <-- to handle prices over 999,99€ like 1.249,99€
-        price = price.replace(',', '.');    // <-- to convert the price in a string which can be parsed
+        price = price.replace(',', '.');    // <-- to convert the price in a string that can be parsed
         price = price.replace("€", "");     // <-- remove unecessary characters
         price = price.replace("CHF", "");   // <-- remove unecessary characters
         price = price.trim();               // <-- remove remaning spaces
@@ -441,11 +440,6 @@ public class Game extends GamePreview implements Serializable {
         return Double.parseDouble(price);
     }
 
-    /**
-     * returned value checked
-     * @param ageBlock
-     * @return 
-     */
     private boolean updatePEGI(Element ageBlock) {
         
         boolean changes = false;
@@ -492,11 +486,6 @@ public class Game extends GamePreview implements Serializable {
         return changes;
     }
 
-    /**
-     * returned value checked
-     * @param bonusBlock
-     * @return 
-     */
     private boolean updateBonus(Element bonusBlock) {
         
         boolean changes = false;
@@ -542,11 +531,6 @@ public class Game extends GamePreview implements Serializable {
         return changes;
     }
 
-    /**
-     * returned value checked
-     * @param prodDesc
-     * @return 
-     */
     private boolean updateDescription(Element prodDesc) {
         
         boolean changes = false;
@@ -579,29 +563,6 @@ public class Game extends GamePreview implements Serializable {
         return changes;
     }
 
-    /**
-     * Create the game folder
-     */
-    private void mkdir() {
-        // create userData folder if doesn't exist
-        File dir = new File(DirectoryManager.TEMP_DIR);
-
-        if (!dir.exists()) {
-            dir.mkdir();
-        }
-
-        // create the game folder if doesn't exist
-        dir = new File( getGameDirectory() );
-
-        if (!dir.exists()) {
-            dir.mkdir();
-        }
-    }
-
-    /**
-     * 
-     * @param prodImgMax 
-     */
     private void updateCover(Element prodImgMax) {
 
         // if the element hasn't got the class name "prodImg max" 
@@ -626,10 +587,6 @@ public class Game extends GamePreview implements Serializable {
         }
     }
 
-    /**
-     *
-     * @param mediaImages
-     */
     private void updateGallery(Element mediaImages) {
 
         // if the element hasn't got the class name "mediaImages" 
@@ -670,25 +627,6 @@ public class Game extends GamePreview implements Serializable {
 
     }
 
-    private void downloadImage(String name, String imgUrl, String imgPath) throws MalformedURLException, IOException {
-        imgPath = imgPath + name;
-        File f = new File(imgPath);
-
-        // if the image already exists
-        if (f.exists()) {
-            Log.warning("Game", "img already exists", imgPath);
-            return;
-        }
-
-        InputStream in = new URL(imgUrl).openStream();
-        Files.copy(in, Paths.get(imgPath));
-        Log.info("Game", "image downloaded", imgUrl);
-    }
-
-    /**
-     *
-     * @throws IOException
-     */
     public void update() throws IOException {
         
         Document html = Jsoup.connect( getURL() ).get();
