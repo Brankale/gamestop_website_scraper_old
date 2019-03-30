@@ -5,6 +5,7 @@
  */
 package gamestopapp;
 
+import DataTypes.Game;
 import java.util.Comparator;
 
 /**

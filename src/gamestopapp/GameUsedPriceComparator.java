@@ -1,5 +1,6 @@
 package gamestopapp;
 
+import DataTypes.Game;
 import java.util.Comparator;
 
 public class GameUsedPriceComparator implements Comparator<Game> {

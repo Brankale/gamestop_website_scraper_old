@@ -1,5 +1,8 @@
 package gamestopapp;
 
+import DataTypes.GamePreview;
+import DataTypes.Games;
+import DataTypes.Game;
 import java.io.File;
 import java.io.IOException;
 import java.util.List;
