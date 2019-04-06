@@ -4,10 +4,10 @@ import java.util.Objects;
 
 public class Promo {
     
-    private String header;
-    private String validity;
-    private String message;
-    private String messageURL;
+    private final String header;
+    private final String validity;
+    private final String message;
+    private final String messageURL;
 
     public Promo(String header, String validity, String message, String messageURL) {
         this.header = header;
@@ -30,6 +30,14 @@ public class Promo {
 
     public String getMessageURL() {
         return messageURL;
+    }
+    
+    public boolean hasMessage() {
+        return message != null;
+    }
+    
+    public boolean hasMessageURL() {
+        return hasMessage();
     }
 
     @Override

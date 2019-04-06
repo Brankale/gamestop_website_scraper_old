@@ -2,22 +2,10 @@ package DataTypes;
 
 import gamestopapp.DirectoryManager;
 import gamestopapp.GameException;
-import gamestopapp.IsNotAGameException;
 import gamestopapp.Log;
-import java.io.EOFException;
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
-import java.io.Serializable;
 import java.net.MalformedURLException;
-import java.net.URL;
-import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 import org.jsoup.Jsoup;
@@ -26,7 +14,7 @@ import org.jsoup.nodes.Element;
 import org.jsoup.nodes.TextNode;
 import org.jsoup.select.Elements;
 
-public class Game extends GamePreview implements Serializable {
+public class Game extends GamePreview {
 
     private List<String> genres;
     private String officialSite;
@@ -43,21 +31,7 @@ public class Game extends GamePreview implements Serializable {
         Document html = Jsoup.connect(url).get();
         Element body = html.body();
         
-        // these three methods are necessary to create a Game
         updateMainInfo(body);
-        
-        /*
-        // elimino tutti gli articoli che non mi interessano
-        if ( this.platform.equals("Gadget") )
-            throw new IsNotAGameException();
-        if ( this.platform.equals("Varie") )
-            throw new IsNotAGameException();
-        if ( this.platform.equals("Cards") )
-            throw new IsNotAGameException();
-        if ( this.platform.equals("Telefonia") )
-            throw new IsNotAGameException();
-        */
-
         updateMetadata(body);
         updatePrices(body);
 
@@ -135,13 +109,6 @@ public class Game extends GamePreview implements Serializable {
         return getGameDirectory() + "gallery/";
     }
     
-    /*
-    @Override
-    public String getCover() {
-        return getGameDirectory() + "cover.jpg";
-    }
-    */
-    
     public String[] getGallery() {
         
         // salvo i nomi delle immagini
@@ -170,51 +137,55 @@ public class Game extends GamePreview implements Serializable {
         str += "publisher = " + publisher + "\n ";
         str += "platform = " + platform + "\n ";
         
-        if ( newPrice != null ){
+        if ( hasNewPrice() ){
             str += "newPrice = " + newPrice + "\n ";
             
-            if ( olderNewPrices != null )
+            if ( hasOlderNewPrices() )
                 str += "olderNewPrices = " + olderNewPrices + "\n ";
         }
         
-        if ( usedPrice != null ){
+        if ( hasUsedPrice() ){
             str += "usedPrice = " + usedPrice + "\n ";
             
-            if ( olderUsedPrices != null )
+            if ( hasOlderUsedPrices() )
                 str += "olderUsedPrices = " + olderUsedPrices + "\n ";
         }
         
-        if ( preorderPrice != null ){
+        if ( hasPreorderPrice() ){
             str += "preorderPrice = " + preorderPrice + "\n ";
         }
         
-        if ( digitalPrice != null ){
+        if ( hasDigitalPrice() ){
             str += "digitalPrice = " + digitalPrice + "\n ";
         }
         
-        if ( promo != null ){
+        if ( hasPromo() ){
             for ( Promo p : promo )
                 str += p + "\n ";
         }
         
-        if ( pegi != null ){
+        if ( hasPegi() ){
             str += "pegi = " + pegi + "\n ";
         }
         
-        if ( genres != null ){
+        if ( hasPegi() ){
             str += "genres = " + genres + "\n ";
         }
         
-        if ( officialSite != null ){
+        if ( hasOfficialSite() ){
             str += "officialSite = " + officialSite + "\n ";
         }
         
-        if ( players != null ){
+        if ( hasPlayers() ){
             str += "players = " + players + "\n ";
         }
         
-        if ( releaseDate != null ){
+        if ( hasReleaseDate() ){
             str += "releaseDate = " + releaseDate + "\n ";
+        }
+        
+        if ( hasDescription() ){
+            str += "description = " + description + "\n ";
         }
         
         str += "validForPromotions = " + validForPromotions + "\n";
@@ -435,17 +406,6 @@ public class Game extends GamePreview implements Serializable {
 
         return changes;
     }
-    
-    protected static double stringToPrice(String price) {
-        
-        price = price.replace(".", "");     // <-- to handle prices over 999,99€ like 1.249,99€
-        price = price.replace(',', '.');    // <-- to convert the price in a string that can be parsed
-        price = price.replace("€", "");     // <-- remove unecessary characters
-        price = price.replace("CHF", "");   // <-- remove unecessary characters
-        price = price.trim();               // <-- remove remaning spaces
-        
-        return Double.parseDouble(price);
-    }
 
     private boolean updatePEGI(Element ageBlock) {
         
@@ -635,51 +595,8 @@ public class Game extends GamePreview implements Serializable {
     }
 
     public void update() throws IOException {
-        
-        Document html = Jsoup.connect( getURL() ).get();
-        Element body = html.body();
-        
-        if ( updateMetadata(body) == true ){
-            Log.debug("Game", getTitle() + ": Metadata have changed");
-        }
-        
-        if ( updatePrices(body) == true ) {
-            Log.debug("Game", getTitle() + ": Prices have changed");
-        }
-        
-        if ( updateBonus(body) == true ){
-            Log.debug("Game", getTitle() + ": Promo has changed");
-        }
-        
-    }
-    
-    public void exportBinary() throws IOException
-    {
-        ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream( getGameDirectory() + "data.dat"));
-        
-        oos.writeObject( this );
-        
-        Log.info("Game", "exported to binary");
-        oos.close();
-    }
-    
-    public static Game importBinary( String path ) throws FileNotFoundException, IOException, ClassNotFoundException
-    {        
-        ObjectInputStream ois = new ObjectInputStream(new FileInputStream(path));
-        
-        Game game = null;    
-        boolean eof = false;
-        
-        while(!eof){
-            try{
-                game = (Game)ois.readObject();
-            }catch(EOFException e){
-                eof = true;
-            }
-        }
-        
-        Log.info("Game", "imported from binary");
-        return game;
+        // not implemented
+        Log.warning("Game", "Method not implemented");
     }
 
 }

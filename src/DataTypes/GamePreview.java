@@ -103,6 +103,10 @@ public class GamePreview implements Comparable<GamePreview> {
     public List<String> getPegi() {
         return pegi;
     }
+    
+    public boolean hasPegi() {
+        return pegi != null;
+    }
 
     public String getReleaseDate() {
         return releaseDate;
@@ -113,15 +117,11 @@ public class GamePreview implements Comparable<GamePreview> {
     }
     
     public String getURL() {
-        return getURLByID(id);
+        return getURLbyID(id);
     }
     
-    public static String getURLByID ( String id ) {
+    public static String getURLbyID ( String id ) {
         return "http://www.gamestop.it/Platform/Games/" + id;
-    }
-    
-    public String getGameDirectory() {
-        return DirectoryManager.getDirectory(id) + id + "/";
     }
     
     public String getCover() {
@@ -130,6 +130,10 @@ public class GamePreview implements Comparable<GamePreview> {
     
     public boolean hasCover() {
         return new File(getCover()).exists();
+    }
+    
+    public String getGameDirectory() {
+        return DirectoryManager.getDirectory(id) + id + "/";
     }
 
     @Override
@@ -202,7 +206,7 @@ public class GamePreview implements Comparable<GamePreview> {
 
     @Override
     public int compareTo(GamePreview gamePreview) {
-        return title.compareTo(gamePreview.getTitle());
+        return title.compareTo(gamePreview.title);
     }
     
     public static List<GamePreview> searchGame(String searchedGameName) throws UnsupportedEncodingException, IOException {
@@ -322,15 +326,6 @@ public class GamePreview implements Comparable<GamePreview> {
         price = price.replaceAll("[^0-9.,]","");    // remove all the characters except for numbers, ',' and '.'
         price = price.replace(".", "");             // to handle prices over 999,99€ like 1.249,99€
         price = price.replace(',', '.');            // to convert the price in a string that can be parsed
-        
-        /* OLD 
-        price = price.split(" ")[1];        // <-- example "Nuovo 19.99€"
-        price = price.replace(".", "");     // <-- to handle prices over 999,99€ like 1.249,99€
-        price = price.replace(',', '.');    // <-- to convert the price in a string that can be parsed
-        price = price.replace("€", "");     // <-- remove unecessary characters
-        price = price.replace("CHF", "");   // <-- remove unecessary characters
-        price = price.trim();               // <-- remove remaning spaces
-        */
         
         return Double.parseDouble(price);
     }
