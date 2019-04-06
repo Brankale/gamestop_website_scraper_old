@@ -21,7 +21,8 @@ public class GamePreview implements Comparable<GamePreview> {
     
     protected Double newPrice;
     protected Double usedPrice;
-    protected Double preorderPrice;    
+    protected Double preorderPrice;
+    protected Double digitalPrice; 
     protected List<Double> olderNewPrices;
     protected List<Double> olderUsedPrices;
     

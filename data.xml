@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <game id="112983">
-  <title>Mortal Kombat 11</title>
-  <publisher>Warner Bros Games</publisher>
-  <platform>Switch</platform>
+  <title><![CDATA[Mortal Kombat 11]]></title>
+  <publisher><![CDATA[Warner Bros Games]]></publisher>
+  <platform><![CDATA[Switch]]></platform>
   <prices>
     <preorderPrice>70.98</preorderPrice>
   </prices>
@@ -10,12 +10,11 @@
     <type>pegi18</type>
   </pegi>
   <genres>
-    <genre>Picchiaduro</genre>
+    <genre><![CDATA[Picchiaduro]]></genre>
   </genres>
-  <releaseDate>17/05/2019</releaseDate>
-  <description>La celeberrima saga di Mortal Kombat è tornata con un nuovo capitolo... ed è più entusiasmante che mai. Le innovative varianti di personalizzazione dei personaggi ti forniscono un&amp;apos;inedita libertà d&amp;apos;azione per dotare i tuoi lottatori delle caratteristiche che desideri. Il nuovo motore grafico mette in risalto tutte le peculiarità degli scontri più violenti, dandoti l&amp;apos;impressione di trovarti nel vivo della lotta. Prosegue inoltre la fenomenale modalità storia a filmati della serie, che vede protagonisti sia vecchie conoscenze che nuovi combattenti e si appresta a lasciare a bocca aperta gli appassionati di questa saga che si protrae da oltre 25 anni.
-Pre-ordina per ottenere SHAO KHAN e Accesso alla Beta* **
+  <releaseDate>09/05/2019</releaseDate>
+  <description><![CDATA[La celeberrima saga di Mortal Kombat è tornata con un nuovo capitolo... ed è più entusiasmante che mai. Le innovative varianti di personalizzazione dei personaggi ti forniscono un'inedita libertà d'azione per dotare i tuoi lottatori delle caratteristiche che desideri. Il nuovo motore grafico mette in risalto tutte le peculiarità degli scontri più violenti, dandoti l'impressione di trovarti nel vivo della lotta. Prosegue inoltre la fenomenale modalità storia a filmati della serie, che vede protagonisti sia vecchie conoscenze che nuovi combattenti e si appresta a lasciare a bocca aperta gli appassionati di questa saga che si protrae da oltre 25 anni.
+Pre-ordina per ottenere SHAO KHAN.*
 * Verifica che la prenotazione sia disponibile nel tuo negozio di fiducia
-** La closed Beta sarà disponibilie solo su Playstation 4 e Xbox One a Marzo 2019
-</description>
+]]></description>
 </game>
