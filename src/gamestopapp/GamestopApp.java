@@ -11,8 +11,19 @@ import org.xml.sax.SAXException;
 public class GamestopApp {
 
     public static void main(String[] args) throws IOException {       
+        
+        Game g = downloadGame("110481");
         try {
+            g.exportXML();
+            
+            
+            //Game g = new Game("110481");
+            
+            
+            
             /*
+            try {
+            
             Game g = new Game("https://www.gamestop.it/Switch/Games/112983/mortal-kombat-11");
             
             try {
@@ -20,11 +31,24 @@ public class GamestopApp {
             } catch (Exception ex) {
             Logger.getLogger(GamestopApp.class.getName()).log(Level.SEVERE, null, ex);
             }
-            */
             
-            Game g = Game.importXML();
+            
+            //g = Game.importXML();
             
             System.out.println(g);
+            } catch (SAXException ex) {
+            Logger.getLogger(GamestopApp.class.getName()).log(Level.SEVERE, null, ex);
+            } catch (ParserConfigurationException ex) {
+            Logger.getLogger(GamestopApp.class.getName()).log(Level.SEVERE, null, ex);
+            }
+            */
+        } catch (Exception ex) {
+            Logger.getLogger(GamestopApp.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        
+        try {
+            Game f = Game.importXML();
+            System.out.println(f);
         } catch (SAXException ex) {
             Logger.getLogger(GamestopApp.class.getName()).log(Level.SEVERE, null, ex);
         } catch (ParserConfigurationException ex) {

@@ -769,7 +769,7 @@ public class Game extends GamePreview implements Serializable {
         transformer.setOutputProperty(OutputKeys.INDENT, "yes");
         transformer.setOutputProperty("{http://xml.apache.org/xslt}indent-amount", "2");
         File f = new File("data.xml");
-        transformer.transform( new DOMSource(doc), new StreamResult(f));
+        transformer.transform( new DOMSource(doc), new StreamResult(f) );
         
         validate(f);
     }
@@ -906,14 +906,8 @@ public class Game extends GamePreview implements Serializable {
         elementReleaseDate.setTextContent(this.releaseDate);
         game.appendChild(elementReleaseDate);
         
-        //Element Description
-        if(this.description != null){
-            org.w3c.dom.Element elementDescription = doc.createElement("description");
-            CDATASection cdataDescription = doc.createCDATASection(this.description);
-            elementDescription.appendChild(cdataDescription);
-            game.appendChild(elementDescription);
-        }
         
+        // promo
         if(this.promo != null){
             org.w3c.dom.Element elementPromos = doc.createElement("promos");
             
@@ -947,6 +941,23 @@ public class Game extends GamePreview implements Serializable {
             }
             
             game.appendChild(elementPromos);
+        }
+        
+        //Element Description
+        if(this.description != null){
+            org.w3c.dom.Element elementDescription = doc.createElement("description");
+            CDATASection cdataDescription = doc.createCDATASection(this.description);
+            elementDescription.appendChild(cdataDescription);
+            game.appendChild(elementDescription);
+        }
+        
+        //Element ValidForPromos
+        if(this.validForPromotions == true){
+            org.w3c.dom.Element elementValidForPromo = doc.createElement("validForPromo");
+            elementValidForPromo.setTextContent(""+this.validForPromotions);
+            //CDATASection cdataDescription = doc.createCDATASection(this.validForPromotions);
+            //elementDescription.appendChild(elementValidForPromo);
+            game.appendChild(elementValidForPromo);
         }
         
         return game;
