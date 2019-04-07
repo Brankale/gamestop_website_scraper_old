@@ -7,8 +7,6 @@ public class DirectoryManager {
     public static final String TEMP_DIR = "tmp/";               // the temporary folder for the app
     public static final String WISHLIST_DIR = "userData/";      // the folder of the saved games
     
-    public static final String SCHEMA_GAME = "resources/xsd/Game.xsd";
-    
     /**
      * @param id id of the game
      * @return  TEMP_DIR if the game is not in the wishlsit
