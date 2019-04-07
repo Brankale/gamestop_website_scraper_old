@@ -84,12 +84,14 @@ public class GamePreview implements Comparable<GamePreview> {
         return digitalPrice != null;
     }
 
-    public List<Double> getOlderNewPrices() {
+    public List<Double> getOlderNewPrices() {        
         return olderNewPrices;
     }
     
     public boolean hasOlderNewPrices() {
-        return olderNewPrices != null;
+        if ( olderNewPrices == null )
+            return false;
+        return olderNewPrices.size() > 0;
     }
 
     public List<Double> getOlderUsedPrices() {
@@ -97,7 +99,9 @@ public class GamePreview implements Comparable<GamePreview> {
     }
     
     public boolean hasOlderUsedPrices() {
-        return olderUsedPrices != null;
+        if ( olderUsedPrices == null )
+            return false;
+        return olderUsedPrices.size() > 0;
     }
 
     public List<String> getPegi() {
@@ -105,7 +109,9 @@ public class GamePreview implements Comparable<GamePreview> {
     }
     
     public boolean hasPegi() {
-        return pegi != null;
+        if ( pegi == null )
+            return false;
+        return pegi.size() > 0;
     }
 
     public String getReleaseDate() {
@@ -113,7 +119,9 @@ public class GamePreview implements Comparable<GamePreview> {
     }
     
     public boolean hasReleaseDate() {
-        return releaseDate != null;
+        if ( releaseDate == null )
+            return false;
+        return !releaseDate.equals("");
     }
     
     public String getURL() {
