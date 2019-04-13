@@ -1,6 +1,7 @@
 package gamestopapp;
 
 import DataTypes.Game;
+import DataTypes.Games;
 import java.io.IOException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -13,12 +14,6 @@ public class GamestopApp {
 
     public static void main(String[] args) throws IOException {        
         // WRITE HERE THE TEST CODE
-        
-        for ( int i=100203; i<101000; ++i ){
-            Game g = downloadGame(""+i);
-            exportGame(g);            
-            System.out.println("");     // spaces between games in the console
-        }
     }
     
     /**

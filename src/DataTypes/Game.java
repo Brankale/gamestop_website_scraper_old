@@ -40,10 +40,21 @@ public class Game extends GamePreview {
     private List<Promo> promo;
     private String description;
     
-    private Game (){
-        // used by importXML()
+    private Game() {
+        // used by importXML
     }
-
+    
+    /*
+    public Game (){
+        this.id = String.valueOf((int)(Math.random()*1000));
+        this.title = "Titolo Gioco";
+        this.publisher = "Publisher";
+        this.platform = "ps20";
+        this.newPrice = 20d;
+        this.usedPrice = 20d;
+        this.mkdir();
+    }*/
+    
     public Game(String url) throws IOException {
         
         this.id = url.split("/")[5];
@@ -834,15 +845,15 @@ public class Game extends GamePreview {
         validator.validate(new StreamSource(f));
     }
     
-    public static Game importXML() throws IOException, ParserConfigurationException, SAXException {
-        File f = new File("data.xml");      // need revision
+    public static Game importXML(String gameId) throws IOException, ParserConfigurationException, SAXException {
+        File f = new File(DirectoryManager.getGameDirectory(gameId)+"data.xml");      // need revision
         validate(f);
         org.w3c.dom.Document doc = DocumentBuilderFactory.newInstance().newDocumentBuilder().parse(f);
         org.w3c.dom.Element game = doc.getDocumentElement();
         return importXML(game);
     }
     
-    public static Game importXML(org.w3c.dom.Element game){
+    private static Game importXML(org.w3c.dom.Element game){
         
         Game g = new Game();
         

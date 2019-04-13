@@ -33,4 +33,8 @@ public class DirectoryManager {
         return TEMP_DIR;
     }
     
+    public static String getGameDirectory(String gameId) {
+        return DirectoryManager.getDirectory(gameId) + gameId + "/";
+    }
+    
 }
