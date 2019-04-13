@@ -1,19 +1,33 @@
 package gamestopapp;
 
-import DataTypes.Game;
-import DataTypes.Games;
 import java.io.IOException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.net.ssl.SSLException;
-import javax.xml.parsers.ParserConfigurationException;
-import javax.xml.transform.TransformerException;
-import org.xml.sax.SAXException;
 
 public class GamestopApp {
 
-    public static void main(String[] args) throws IOException {        
+    public static void main(String[] args) throws IOException, Exception {        
+        
         // WRITE HERE THE TEST CODE
+        
+        DirectoryManager.mkdir();
+        
+        //Games games = DirectoryManager.importGames();
+        //System.out.println(games);
+        
+        
+        
+        Games games = new Games();
+        
+        for ( int i=100000; i<100050; ++i ){
+            Game game = downloadGame(""+i);
+            games.add(game);
+            System.out.println("");
+        }
+        
+        DirectoryManager.exportGames(games);
+        
     }
     
     /**
@@ -44,18 +58,6 @@ public class GamestopApp {
         }       
         
         return null;        
-    }
-    
-    public static void exportGame ( Game game ) {
-        
-        if ( game == null )
-            return;
-        
-        try {
-            game.exportXML();
-        } catch (ParserConfigurationException | TransformerException | SAXException | IOException ex) {
-            Log.crash(ex, "Game ID: " + game.getId());
-        }
     }
     
 }
