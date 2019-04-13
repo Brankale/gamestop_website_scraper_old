@@ -132,17 +132,22 @@ public class GamePreview implements Comparable<GamePreview> {
         return "http://www.gamestop.it/Platform/Games/" + id;
     }
     
+    /*
     public String getCover() {
         return getGameDirectory() + "cover.jpg";
     }
+    
+    
     
     public boolean hasCover() {
         return new File(getCover()).exists();
     }
     
+    
     public String getGameDirectory() {
         return DirectoryManager.getDirectory(id) + id + "/";
     }
+    */
 
     @Override
     public int hashCode() {
@@ -354,15 +359,8 @@ public class GamePreview implements Comparable<GamePreview> {
     }
     
     protected void mkdir() {
-        // create userData folder if doesn't exist
-        File dir = new File(DirectoryManager.TEMP_DIR);
-
-        if (!dir.exists()) {
-            dir.mkdir();
-        }
-
         // create the game folder if doesn't exist
-        dir = new File( getGameDirectory() );
+        File dir = new File( getGameDirectory() );
 
         if (!dir.exists()) {
             dir.mkdir();
