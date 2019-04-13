@@ -1,6 +1,5 @@
 package gamestopapp;
 
-import DataTypes.Game;
 import java.util.Comparator;
 
 public class GameUsedPriceComparator implements Comparator<Game> {
@@ -16,7 +15,7 @@ public class GameUsedPriceComparator implements Comparator<Game> {
         if ( game2.getUsedPrice() == -1 )
             return -1;
         
-        return ( (Double) game1.getUsedPrice() ).compareTo( game2.getUsedPrice() );
+        return ( game1.getUsedPrice() ).compareTo( game2.getUsedPrice() );
     }
     
 }

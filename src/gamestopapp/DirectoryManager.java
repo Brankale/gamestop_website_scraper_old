@@ -1,22 +1,15 @@
 package gamestopapp;
 
-import DataTypes.Game;
-import DataTypes.Games;
-import DataTypes.Promo;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.FileWriter;
-import java.io.IOException;
 import java.util.ArrayList;
 import javax.xml.XMLConstants;
 import javax.xml.parsers.DocumentBuilderFactory;
-import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.transform.OutputKeys;
 import javax.xml.transform.Transformer;
-import javax.xml.transform.TransformerException;
 import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
@@ -26,12 +19,12 @@ import javax.xml.validation.SchemaFactory;
 import org.w3c.dom.CDATASection;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
-import org.xml.sax.SAXException;
 
 public class DirectoryManager {
     
     private static final String GAMES_DIRECTORY = "userdata/";
     private static final String WISHLIST = GAMES_DIRECTORY + "data.csv";
+    private static final String SCHEMA_GAME = "resources/xsd/Game.xsd";
     
     public static void mkdir(){
         File dir = new File(GAMES_DIRECTORY);
@@ -50,33 +43,37 @@ public class DirectoryManager {
     }
     
     public static String getGameDirectory(String gameId){
-        return "";
+        return getGamesDirectory() + gameId + "/";
+    }
+    
+    public static String getGameGalleryDirectory(String gameId){
+        return getGameDirectory(gameId) + "gallery/";
     }
     
     public static File getGameXML(String gameId){
-        return null;
-    }
+        return new File(getGameDirectory(gameId)+"data.xml");
+    }    
     
+    // IMPORT/EXPORT METHODS FOR GAME CLASS -----------------------------------
     
-    //Game Import-Export
-    public void exportGame(Game game) throws ParserConfigurationException, TransformerException, SAXException, IOException {
+    public static void exportGame(Game game) throws Exception  {
     	
-        Document doc = DocumentBuilderFactory.newInstance().newDocumentBuilder().newDocument();
-        
-        doc.appendChild(exportGame(game,doc));
+        Document doc = DocumentBuilderFactory.newInstance().newDocumentBuilder().newDocument();        
+        doc.appendChild( exportGame(game, doc) );
         
         Transformer transformer = TransformerFactory.newInstance().newTransformer();
         transformer.setOutputProperty(OutputKeys.INDENT, "yes");
         transformer.setOutputProperty("{http://xml.apache.org/xslt}indent-amount", "4");
         File f = getGameXML(game.getId());
-        //Non aggiungere controlli per esportare il file XML, perchè se subisce modifiche il gioco, l'XML non si aggiorna
-        transformer.transform( new DOMSource(doc), new StreamResult(f) );
+        transformer.transform( new DOMSource(doc), new StreamResult(f) );     
         
-        Log.info("DirectoryManager", "Game exported successfully", game.getId() + ": \"" + game.getTitle() + "\"");        
-        validate(f);
+        // check the XML
+        validateGame(f);
+        
+        Log.info("DirectoryManager", "Game exported successfully", game.getId() + ": \"" + game.getTitle() + "\"");
     }
     
-    public Element exportGame(Game game, Document doc){
+    public static Element exportGame(Game game, Document doc){
         
         Element gameElement = doc.createElement("game");
         
@@ -256,51 +253,50 @@ public class DirectoryManager {
             gameElement.appendChild(elementValidForPromo);
         }
         
-        return gameElement;        
+        return gameElement;   
+    }   
+    
+    public static Game importGame(String gameId) throws Exception  {
+        
+        File f = getGameXML(gameId);      // need revision
+        
+        // check the XML
+        validateGame(f);
+        
+        Document doc = DocumentBuilderFactory.newInstance().newDocumentBuilder().parse(f);        
+        return importGame(doc);
     }
     
-    public static void validate(File f) throws SAXException, IOException {        
-        Schema schema = SchemaFactory.newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI).newSchema(new File(DirectoryManager.SCHEMA_GAME));
-        javax.xml.validation.Validator validator = schema.newValidator();
-        validator.validate(new StreamSource(f));
-    }
-    
-    public static Game importGame(String gameId) throws IOException, ParserConfigurationException, SAXException {
-        File f = new File(DirectoryManager.getGameDirectory(gameId)+"data.xml");      // need revision
-        validate(f);
-        org.w3c.dom.Document doc = DocumentBuilderFactory.newInstance().newDocumentBuilder().parse(f);
-        Element game = doc.getDocumentElement();
-        return importXML(game);
-    }
-    
-    private static Game importGame(Element game){
+    private static Game importGame(Document doc){
         
-        Game g = new Game();
+        Game game = new Game();
         
-        g.id = game.getAttribute("id");
+        Element gameElement = doc.getDocumentElement();
         
-        g.title = game.getElementsByTagName("title").item(0).getChildNodes().item(0).getTextContent();        
-        g.publisher = game.getElementsByTagName("publisher").item(0).getChildNodes().item(0).getTextContent();
-        g.platform = game.getElementsByTagName("platform").item(0).getChildNodes().item(0).getTextContent();
+        game.id = gameElement.getAttribute("id");
         
-        Element prices = (Element)game.getElementsByTagName("prices").item(0);
+        game.title = gameElement.getElementsByTagName("title").item(0).getChildNodes().item(0).getTextContent();        
+        game.publisher = gameElement.getElementsByTagName("publisher").item(0).getChildNodes().item(0).getTextContent();
+        game.platform = gameElement.getElementsByTagName("platform").item(0).getChildNodes().item(0).getTextContent();
+        
+        Element prices = (Element)gameElement.getElementsByTagName("prices").item(0);
         
         //NEW PRICE
         org.w3c.dom.NodeList nl = prices.getElementsByTagName("newPrice");
         if(nl.getLength() > 0){
             Element newPrice = (Element)nl.item(0);
-            g.newPrice = Double.valueOf(newPrice.getTextContent());
+            game.newPrice = Double.valueOf(newPrice.getTextContent());
         }
         
         //OLDER NEW PRICES
         nl = prices.getElementsByTagName("olderNewPrices");
         if(nl.getLength() > 0){
-            g.olderNewPrices = new ArrayList();
+            game.olderNewPrices = new ArrayList();
             Element olderNewPrices = (Element)nl.item(0);
             nl = olderNewPrices.getElementsByTagName("price");
             for(int i = 0; i<nl.getLength(); i++){
                 Element elementPrice = (Element)nl.item(i);
-                g.olderNewPrices.add(Double.valueOf(elementPrice.getTextContent()));
+                game.olderNewPrices.add(Double.valueOf(elementPrice.getTextContent()));
             }
         }
         
@@ -308,18 +304,18 @@ public class DirectoryManager {
         nl = prices.getElementsByTagName("usedPrice");
         if(nl.getLength() > 0){
             Element usedPrice = (Element)nl.item(0);
-            g.usedPrice = Double.valueOf(usedPrice.getTextContent());
+            game.usedPrice = Double.valueOf(usedPrice.getTextContent());
         }
         
         //OLDER USED PRICES
         nl = prices.getElementsByTagName("olderUsedPrices");
         if(nl.getLength() > 0){
-            g.olderUsedPrices = new ArrayList();
+            game.olderUsedPrices = new ArrayList();
             Element olderUsedPrices = (Element)nl.item(0);
             nl = olderUsedPrices.getElementsByTagName("price");
             for(int i = 0; i<nl.getLength(); i++){
                 Element elementPrice = (Element)nl.item(i);
-                g.olderUsedPrices.add(Double.valueOf(elementPrice.getTextContent()));
+                game.olderUsedPrices.add(Double.valueOf(elementPrice.getTextContent()));
             }
         }
         
@@ -327,67 +323,67 @@ public class DirectoryManager {
         nl = prices.getElementsByTagName("preorderPrice");
         if(nl.getLength() > 0){
             Element preorderPrice = (Element)nl.item(0);
-            g.preorderPrice = Double.valueOf(preorderPrice.getTextContent());
+            game.preorderPrice = Double.valueOf(preorderPrice.getTextContent());
         }
         
         //DIGITAL PRICE
         nl = prices.getElementsByTagName("digitalPrice");
         if(nl.getLength() > 0){
             Element digitalPrice = (Element)nl.item(0);
-            g.digitalPrice = Double.valueOf(digitalPrice.getTextContent());
+            game.digitalPrice = Double.valueOf(digitalPrice.getTextContent());
         }
         
         //PEGI
-        nl = game.getElementsByTagName("pegi");
+        nl = gameElement.getElementsByTagName("pegi");
         if(nl.getLength() > 0){
             Element pegi = (Element)nl.item(0);
             nl = pegi.getElementsByTagName("type");
-            g.pegi = new ArrayList();
+            game.pegi = new ArrayList();
             for(int i = 0; i<nl.getLength(); i++){
                 Element type = (Element)nl.item(i);
-                g.pegi.add(type.getTextContent());
+                game.pegi.add(type.getTextContent());
             }
         }
         
         //GENRES
-        nl = game.getElementsByTagName("genres");
+        nl = gameElement.getElementsByTagName("genres");
         if(nl.getLength() > 0){
             Element genres = (Element)nl.item(0);
             nl = genres.getElementsByTagName("genre");
-            g.genres = new ArrayList();
+            game.genres = new ArrayList();
             for(int i = 0; i<nl.getLength(); i++){
                 Element genre = (Element)nl.item(i);
-                g.genres.add(genre.getTextContent());
+                game.genres.add(genre.getTextContent());
             }
         }
         
         //OFFICIAL SITE
-        nl = game.getElementsByTagName("officialSite");
+        nl = gameElement.getElementsByTagName("officialSite");
         if(nl.getLength() > 0){
             Element officialSite = (Element)nl.item(0);
-            g.officialSite = officialSite.getChildNodes().item(0).getTextContent();
+            game.officialSite = officialSite.getChildNodes().item(0).getTextContent();
         }
         
         //PLAYERS
-        nl = game.getElementsByTagName("players");
+        nl = gameElement.getElementsByTagName("players");
         if(nl.getLength() > 0){
             Element players = (Element)nl.item(0);
-            g.players = players.getChildNodes().item(0).getTextContent();
+            game.players = players.getChildNodes().item(0).getTextContent();
         }
         
         //RELEASE DATE
-        nl = game.getElementsByTagName("releaseDate");
+        nl = gameElement.getElementsByTagName("releaseDate");
         if(nl.getLength() > 0){
             Element releaseDate = (Element)nl.item(0);
-            g.releaseDate = releaseDate.getTextContent();
+            game.releaseDate = releaseDate.getTextContent();
         }
         
         //PROMOS
-        nl = game.getElementsByTagName("promos");
+        nl = gameElement.getElementsByTagName("promos");
         if(nl.getLength() > 0){
             Element promos = (Element)nl.item(0);
             nl = promos.getElementsByTagName("promo");
-            g.promo = new ArrayList();
+            game.promo = new ArrayList();
             for(int i = 0; i<nl.getLength(); i++){
                 Element promo = (Element)nl.item(i);
                 
@@ -402,54 +398,63 @@ public class DirectoryManager {
                 }
 
                 Promo p = new Promo(header, validity, message, messageURL);
-                g.promo.add(p);
+                game.promo.add(p);
             }
         }
         
         //DESCRIPTION
-        nl = game.getElementsByTagName("description");
+        nl = gameElement.getElementsByTagName("description");
         if(nl.getLength() > 0){
             Element description = (Element)nl.item(0);
-            g.description = description.getChildNodes().item(0).getTextContent();
+            game.description = description.getChildNodes().item(0).getTextContent();
         }
         
         //VALID FOR PROMO
-        nl = game.getElementsByTagName("validForPromo");
+        nl = gameElement.getElementsByTagName("validForPromo");
         if(nl.getLength() > 0){
             Element validForPromo = (Element)nl.item(0);
-            g.validForPromotions = Boolean.valueOf(validForPromo.getTextContent());
+            game.validForPromotions = Boolean.valueOf(validForPromo.getTextContent());
         }
         
-        return g;
+        return game;
     }
     
-    //Games Import-Export
-    public void exportGames() throws ParserConfigurationException, TransformerException, SAXException, IOException{
-        File f = new File(DirectoryManager.WISHLIST_DIR+"data.csv");
+    public static void validateGame(File f) throws Exception  {        
+        Schema schema = SchemaFactory.newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI).newSchema(new File(DirectoryManager.SCHEMA_GAME));
+        javax.xml.validation.Validator validator = schema.newValidator();
+        validator.validate(new StreamSource(f));
+    }
+    
+    // IMPORT/EXPORT METHODS FOR GAMES CLASS ----------------------------------
+    
+    public static void exportGames(Games games) throws Exception {
+        
+        File f = new File(WISHLIST);
         BufferedWriter bw = new BufferedWriter(new FileWriter(f));
-        for(int i = 0; i<this.size(); i++){
-            this.get(i).exportXML();
-            bw.write(this.get(i).getId());
-            if(i < (this.size()-1)){
-                bw.write(",");
-            }
+        
+        for ( Game game : games ){
+            exportGame(game);
+            bw.write( game.getId() + ";" );
         }
+        
         bw.close();
     }
     
-    public static Games importGames() throws FileNotFoundException, IOException, ParserConfigurationException, SAXException{
-        Games g = new Games();
-        File f = new File(DirectoryManager.WISHLIST_DIR+"data.csv");
+    public static Games importGames() throws Exception {
+        
+        Games games = new Games();
+        
+        File f = new File(WISHLIST);
         BufferedReader br = new BufferedReader(new FileReader(f));
         
         String row = br.readLine();
-        String[] ids = row.split(",");
+        String[] IDs = row.split(";");
         
-        for(String id : ids){
-            g.add(Game.importXML(id));
+        for( String id : IDs ){
+            games.add(importGame(id));
         }
         
-        return g;
+        return games;
     }
     
 }

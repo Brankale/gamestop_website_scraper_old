@@ -1,17 +1,7 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package gamestopapp;
 
-import DataTypes.Game;
 import java.util.Comparator;
 
-/**
- *
- * @author android
- */
 public class GamePlatformComparator implements Comparator<Game> {
 
     @Override
