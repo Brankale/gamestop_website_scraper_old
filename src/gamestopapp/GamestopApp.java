@@ -1,6 +1,5 @@
 package gamestopapp;
 
-import DataTypes.Game;
 import java.io.IOException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -8,8 +7,27 @@ import javax.net.ssl.SSLException;
 
 public class GamestopApp {
 
-    public static void main(String[] args) throws IOException {        
+    public static void main(String[] args) throws IOException, Exception {        
+        
         // WRITE HERE THE TEST CODE
+        
+        DirectoryManager.mkdir();
+        
+        //Games games = DirectoryManager.importGames();
+        //System.out.println(games);
+        
+        
+        
+        Games games = new Games();
+        
+        for ( int i=100000; i<100050; ++i ){
+            Game game = downloadGame(""+i);
+            games.add(game);
+            System.out.println("");
+        }
+        
+        DirectoryManager.exportGames(games);
+        
     }
     
     /**
@@ -37,7 +55,7 @@ public class GamestopApp {
             System.out.println("Fatal Error");
             Log.crash(ex, "Game ID: " + id);
             Logger.getLogger(GamestopApp.class.getName()).log(Level.SEVERE, null, ex);
-        }        
+        }       
         
         return null;        
     }
