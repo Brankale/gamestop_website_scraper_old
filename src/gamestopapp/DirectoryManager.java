@@ -6,6 +6,8 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.util.ArrayList;
+import java.util.TreeMap;
+import java.util.TreeSet;
 import javax.xml.XMLConstants;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.transform.OutputKeys;
@@ -34,12 +36,18 @@ public class DirectoryManager {
         }
     }
     
+    public static void mkdir(String gameId){        
+        mkdir();
+        
+        File dir = new File(getGameDirectory(gameId));
+        
+        if(!dir.exists()){
+            dir.mkdir();
+        }
+    }
+    
     public static String getGamesDirectory() {
         return GAMES_DIRECTORY;
-    }
-
-    public static File getWishlist() {
-        return new File(WISHLIST);
     }
     
     public static String getGameDirectory(String gameId){
@@ -48,6 +56,10 @@ public class DirectoryManager {
     
     public static String getGameGalleryDirectory(String gameId){
         return getGameDirectory(gameId) + "gallery/";
+    }
+    
+    public static File getWishlist() {
+        return new File(WISHLIST);
     }
     
     public static File getGameXML(String gameId){
@@ -455,6 +467,47 @@ public class DirectoryManager {
         }
         
         return games;
+    }
+    
+    // DELETE METHODS
+    
+    // discutere sui parametri passati in ingresso
+    public static void deleteTempGames(Games games){
+        
+        // make a tree with the ids to speed the operations
+        TreeSet<String> ids = new TreeSet<>();
+        for ( Game game : games ){
+            ids.add(game.getId());
+        }
+        
+        File[] gameFolders = new File(getGamesDirectory()).listFiles();
+        
+        for ( File file : gameFolders ){
+            // if the file is a folder and doesn't have the name of an id contained in the wishlist
+            if ( file.isDirectory() && ids.contains(file.getName()) == false ){
+                deleteFile(file);
+                Log.info("DirectoryManager", "\""+file.getName()+"\" folder deleted");
+            }
+        }
+        
+    }
+    
+    public static void deleteAllGames() {
+        File[] gameFolders = new File(getGamesDirectory()).listFiles();
+        for ( File file : gameFolders ){
+            deleteFile(file);
+        }
+    }
+    
+    private static void deleteFile(File f) {
+        
+        if ( f.isDirectory() ){
+            for ( File file : f.listFiles() ) {
+                deleteFile(file);
+            }
+        }
+        
+        f.delete();        
     }
     
 }

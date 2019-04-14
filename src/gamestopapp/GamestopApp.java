@@ -11,23 +11,19 @@ public class GamestopApp {
         
         // WRITE HERE THE TEST CODE
         
-        DirectoryManager.mkdir();
-        
-        //Games games = DirectoryManager.importGames();
-        //System.out.println(games);
-        
+        DirectoryManager.deleteAllGames();
         
         
         Games games = new Games();
         
         for ( int i=100000; i<100050; ++i ){
             Game game = downloadGame(""+i);
-            games.add(game);
+            //games.add(game);
             System.out.println("");
         }
         
         DirectoryManager.exportGames(games);
-        
+        //DirectoryManager.deleteTemporaryFiles(games);
     }
     
     /**
@@ -40,17 +36,17 @@ public class GamestopApp {
     public static Game downloadGame ( String id ) {
         
         try {
-            Log.info("Main", "Downloading Game [ID=" + id + "] ..." );
+            Log.info("Main", "Downloading Game [ID=" + id + "]" );
             Game game = new Game( Game.getURLbyID(id) );
             return game;
         } catch ( SSLException ex ) {
-            Log.error("Main", "Tempo di connessione scaduto");
+            Log.error("Main", "Connection time expired");
         } catch ( IOException ex ) {
-            Log.error("Main", "Errore durante la connessione");
+            Log.error("Main", "Error during connection");
         } catch ( IsNotAGameException ex ) {
             Log.warning("Main", ex.toString() );
         } catch ( GameException ex ) {
-            Log.error("Main", "Creazione del gioco fallita");
+            Log.error("Main", "Game creation failed");
         } catch ( Exception ex ){
             System.out.println("Fatal Error");
             Log.crash(ex, "Game ID: " + id);

@@ -309,7 +309,7 @@ public class GamePreview implements Comparable<GamePreview> {
             gamePreview.releaseDate = game.getElementsByTag("li").get(0).text().split(": ")[1];
             
             // create the necessary directories
-            gamePreview.mkdir();
+            DirectoryManager.mkdir(gamePreview.id);
             
             // download the cover
             String imageUrl = game.getElementsByClass("prodImg").get(0).getElementsByTag("img").get(0).attr("data-llsrc");
@@ -345,15 +345,6 @@ public class GamePreview implements Comparable<GamePreview> {
         InputStream in = new URL(imgUrl).openStream();
         Files.copy(in, Paths.get(imgPath));
         Log.info("Game", "image downloaded", imgUrl);
-    }
-    
-    protected void mkdir() {
-        // create the game folder if doesn't exist
-        File dir = new File( DirectoryManager.getGameDirectory(id) );
-
-        if (!dir.exists()) {
-            dir.mkdir();
-        }
     }
     
 }

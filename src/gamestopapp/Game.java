@@ -11,7 +11,7 @@ import org.jsoup.nodes.Element;
 import org.jsoup.nodes.TextNode;
 import org.jsoup.select.Elements;
 
-public class Game extends GamePreview {
+public final class Game extends GamePreview {
 
     protected List<String> genres;
     protected String officialSite;
@@ -22,7 +22,7 @@ public class Game extends GamePreview {
     protected String description;
     
     public Game() {
-        // used by importXML
+        // used by Directory Manager import methods
     }
     
     public Game(String url) throws IOException {
@@ -43,7 +43,7 @@ public class Game extends GamePreview {
         updateBonus(body);
         updateDescription(body);
 
-        mkdir();
+        DirectoryManager.mkdir(id);
         updateCover(body);
         updateGallery(body);
     }
