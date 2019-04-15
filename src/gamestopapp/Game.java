@@ -5,6 +5,8 @@ import java.io.IOException;
 import java.net.MalformedURLException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
@@ -36,7 +38,7 @@ public final class Game extends GamePreview {
         updateMetadata(body);
         updatePrices(body);
 
-        Log.info("Game", "Game found", id + ": \"" + title + "\"");
+        Log.info("Game", "Game found", "["+id+"]" + "["+platform+"]" + " - \"" + title + "\"");
         
         // the following information are not necessary to create a game
         updatePEGI(body);
@@ -548,7 +550,7 @@ public final class Game extends GamePreview {
         String imgPath = getCover();
 
         try {
-            downloadImage("cover.jpg", imgUrl, imgPath);
+            DirectoryManager.downloadImage(imgPath, imgUrl);
         } catch ( MalformedURLException ex ) {
             Log.error("Game", "ID: " + getId() + " - malformed URL", imgUrl);
         } catch (IOException ex) {
@@ -576,17 +578,18 @@ public final class Game extends GamePreview {
         }
 
         for (Element e : mediaImages.getElementsByTag("a")) {
+            
             String imgUrl = e.attr("href");
             if (imgUrl.equals("")) {
                 // this can handle very rare cases of malformed HTMLs
                 // ex. https://www.gamestop.it/Varie/Games/95367/cambio-driving-force-per-volanti-g29-e-g920
                 imgUrl = e.getElementsByTag("img").get(0).attr("src");
-            }
-
-            String imgName = imgUrl.split("/")[6];
-
+            }            
+            
+            String imgName = imgUrl.split("/")[imgUrl.split("/").length-1];
+            
             try {
-                downloadImage(imgName, imgUrl, imgPath);
+                DirectoryManager.downloadImage(imgPath+imgName, imgUrl);
             } catch ( MalformedURLException ex ) {
                 Log.error("Game", "ID: " + getId() + " - malformed URL", imgUrl);
             } catch (IOException ex) {

@@ -21,7 +21,7 @@ public class Games extends ArrayList<Game> {
         }
         
         super.add(game);
-        Log.info("Games", "game added", game.getPlatform() + ": " + game.getTitle() );
+        Log.info("Games", "game added", "["+game.getId()+"]" + "["+game.getPlatform()+"]" + " - \"" + game.getTitle() + "\"" );
         
         return true;
     }

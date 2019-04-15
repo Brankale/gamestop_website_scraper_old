@@ -313,8 +313,8 @@ public class GamePreview implements Comparable<GamePreview> {
             
             // download the cover
             String imageUrl = game.getElementsByClass("prodImg").get(0).getElementsByTag("img").get(0).attr("data-llsrc");
-            imageUrl = imageUrl.replace("2med", "3max");
-            downloadImage("", imageUrl, gamePreview.getCover());
+            imageUrl = imageUrl.replace("2med", "3max");  
+            DirectoryManager.downloadImage(gamePreview.getCover(), imageUrl);
             
             searchedGames.add(gamePreview);
         }
@@ -330,21 +330,6 @@ public class GamePreview implements Comparable<GamePreview> {
         price = price.replace(',', '.');            // to convert the price in a string that can be parsed
         
         return Double.parseDouble(price);
-    }
-    
-    protected static final void downloadImage(String name, String imgUrl, String imgPath) throws MalformedURLException, IOException {
-        imgPath = imgPath + name;
-        File f = new File(imgPath);
-
-        // if the image already exists
-        if (f.exists()) {
-            Log.warning("Game", "img already exists", imgPath);
-            return;
-        }
-
-        InputStream in = new URL(imgUrl).openStream();
-        Files.copy(in, Paths.get(imgPath));
-        Log.info("Game", "image downloaded", imgUrl);
     }
     
 }

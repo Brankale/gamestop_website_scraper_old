@@ -5,6 +5,12 @@ import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.TreeMap;
 import java.util.TreeSet;
@@ -64,7 +70,23 @@ public class DirectoryManager {
     
     public static File getGameXML(String gameId){
         return new File(getGameDirectory(gameId)+"data.xml");
-    }    
+    }
+    
+    public static final void downloadImage(String imgPath, String imgURL) throws MalformedURLException, IOException {
+        
+        File image = new File(imgPath);
+
+        // if the image already exists
+        if ( image.exists() ) {
+            Log.warning("DirectoryManager", "image already exists", imgPath);
+            return;
+        }
+        
+        // download the image
+        InputStream in = new URL(imgURL).openStream();
+        Files.copy(in, Paths.get(imgPath));
+        Log.info("DirectoryManager", "image downloaded", imgURL);
+    }
     
     // IMPORT/EXPORT METHODS FOR GAME CLASS -----------------------------------
     
@@ -82,7 +104,7 @@ public class DirectoryManager {
         // check the XML
         validateGame(f);
         
-        Log.info("DirectoryManager", "Game exported successfully", game.getId() + ": \"" + game.getTitle() + "\"");
+        Log.info("DirectoryManager", "Game exported successfully", "["+game.getId()+"]" + "["+game.getPlatform()+"]" + " - \"" + game.getTitle() + "\"");
     }
     
     public static Element exportGame(Game game, Document doc){

@@ -1,6 +1,7 @@
 package gamestopapp;
 
 import java.io.IOException;
+import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.net.ssl.SSLException;
@@ -11,19 +12,21 @@ public class GamestopApp {
         
         // WRITE HERE THE TEST CODE
         
-        DirectoryManager.deleteAllGames();
+        //Games games = DirectoryManager.importGames();
         
+        
+        List<GamePreview> list = GamePreview.searchGame("gravity rush");
         
         Games games = new Games();
-        
-        for ( int i=100000; i<100050; ++i ){
-            Game game = downloadGame(""+i);
-            //games.add(game);
+        for ( GamePreview g : list ){
+            Game game = downloadGame(g.id);
+            games.add(game);
             System.out.println("");
         }
         
         DirectoryManager.exportGames(games);
-        //DirectoryManager.deleteTemporaryFiles(games);
+        
+        
     }
     
     /**
