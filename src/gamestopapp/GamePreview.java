@@ -2,13 +2,8 @@ package gamestopapp;
 
 import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
-import java.net.MalformedURLException;
-import java.net.URL;
 import java.net.URLEncoder;
-import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -211,7 +206,7 @@ public class GamePreview implements Comparable<GamePreview> {
         return title.compareTo(gamePreview.title);
     }
     
-    public static List<GamePreview> searchGame(String searchedGameName) throws UnsupportedEncodingException, IOException {
+    public static Games searchGame(String searchedGameName) throws UnsupportedEncodingException, IOException {
 
         String url = "https://www.gamestop.it/SearchResult/QuickSearch?q=" + URLEncoder.encode(searchedGameName, "UTF-8");
         
@@ -226,7 +221,7 @@ public class GamePreview implements Comparable<GamePreview> {
             return null;
         }
         
-        List<GamePreview> searchedGames = new ArrayList();
+        Games searchedGames = new Games();
 
         for ( Element game : gamesList )
         {

@@ -3,17 +3,17 @@ package gamestopapp;
 import java.util.ArrayList;
 import java.util.Collections;
 
-public class Games extends ArrayList<Game> {
+public class Games extends ArrayList<GamePreview> {
     
     @Override
-    public boolean add ( Game game ) {
+    public boolean add ( GamePreview game ) {
         
         if ( game == null ){
             Log.info("Games", "impossible to add the game to the list. The object is null");
             return false;
         }
         
-        for ( Game g : this ){
+        for ( GamePreview g : this ){
             if ( g.equals(game) ){
                 Log.warning("Games", "the game already exist", game.getTitle() );
                 return false;

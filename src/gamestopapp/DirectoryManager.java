@@ -12,8 +12,7 @@ import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
-import java.util.TreeMap;
-import java.util.TreeSet;
+import java.util.HashSet;
 import javax.xml.XMLConstants;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.transform.OutputKeys;
@@ -466,8 +465,8 @@ public class DirectoryManager {
         File f = new File(WISHLIST);
         BufferedWriter bw = new BufferedWriter(new FileWriter(f));
         
-        for ( Game game : games ){
-            exportGame(game);
+        for ( GamePreview game : games ){
+            exportGame((Game)game);
             bw.write( game.getId() + ";" );
         }
         
@@ -497,8 +496,8 @@ public class DirectoryManager {
     public static void deleteTempGames(Games games){
         
         // make a tree with the ids to speed the operations
-        TreeSet<String> ids = new TreeSet<>();
-        for ( Game game : games ){
+        HashSet<String> ids = new HashSet<>();
+        for ( GamePreview game : games ){
             ids.add(game.getId());
         }
         

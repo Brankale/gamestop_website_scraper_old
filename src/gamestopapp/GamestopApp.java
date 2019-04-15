@@ -1,32 +1,14 @@
 package gamestopapp;
 
 import java.io.IOException;
-import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.net.ssl.SSLException;
 
 public class GamestopApp {
 
-    public static void main(String[] args) throws IOException, Exception {        
-        
+    public static void main(String[] args) {
         // WRITE HERE THE TEST CODE
-        
-        //Games games = DirectoryManager.importGames();
-        
-        
-        List<GamePreview> list = GamePreview.searchGame("gravity rush");
-        
-        Games games = new Games();
-        for ( GamePreview g : list ){
-            Game game = downloadGame(g.id);
-            games.add(game);
-            System.out.println("");
-        }
-        
-        DirectoryManager.exportGames(games);
-        
-        
     }
     
     /**
