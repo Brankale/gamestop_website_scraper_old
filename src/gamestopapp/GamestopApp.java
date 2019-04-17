@@ -9,6 +9,22 @@ public class GamestopApp {
 
     public static void main(String[] args) {
         // WRITE HERE THE TEST CODE
+        
+        Games games = new Games();
+        
+        Game g = downloadGame(""+126640);
+        games.add(g);
+        g = downloadGame(""+126510);
+        games.add(g);
+        g = downloadGame(""+126915);
+        games.add(g);
+        g = downloadGame(""+126567);
+        games.add(g);
+        
+        games.sortByReleaseDate();
+        
+        System.out.println(games);
+        
     }
     
     /**

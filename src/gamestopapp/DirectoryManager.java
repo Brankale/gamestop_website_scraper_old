@@ -452,8 +452,21 @@ public class DirectoryManager {
         return game;
     }
     
-    public static void validateGame(File f) throws Exception  {        
-        Schema schema = SchemaFactory.newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI).newSchema(new File(DirectoryManager.SCHEMA_GAME));
+    public static void validateGame(File f) throws Exception  {
+        
+        File gameSchema = new File(SCHEMA_GAME);
+        
+        if ( !gameSchema.exists() ){
+            Log.error("DirectoryManager", "game schema doesn't exist");
+            
+            /*
+            InpuStream in = // operazione che ritorna inputstream
+            Files.copy(in, Paths.get(SCHEMA_GAME));
+            File schema = new File(SCHEMA_GAME);
+            */            
+        }
+        
+        Schema schema = SchemaFactory.newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI).newSchema(gameSchema);
         javax.xml.validation.Validator validator = schema.newValidator();
         validator.validate(new StreamSource(f));
     }

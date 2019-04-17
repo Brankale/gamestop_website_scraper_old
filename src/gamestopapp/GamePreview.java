@@ -4,9 +4,13 @@ import java.io.File;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
@@ -111,10 +115,14 @@ public class GamePreview implements Comparable<GamePreview> {
         return releaseDate;
     }
     
-    public boolean hasReleaseDate() {
-        if ( releaseDate == null )
+    public boolean hasReleaseDate() {        
+        try {
+            SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy");
+            sdf.parse(releaseDate);
+            return true;
+        } catch (ParseException ex) {
             return false;
-        return !releaseDate.equals("");
+        }
     }
     
     public String getURL() {
