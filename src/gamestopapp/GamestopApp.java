@@ -8,22 +8,24 @@ import javax.net.ssl.SSLException;
 public class GamestopApp {
 
     public static void main(String[] args) {
+        
         // WRITE HERE THE TEST CODE
+
+        Game g = downloadGame("21782");
+        Game f = downloadGame("126640");
+        Game h = downloadGame("126072");        
         
-        Games games = new Games();
+        System.out.println(g);
+        System.out.println(f);
+        System.out.println(h);        
         
-        Game g = downloadGame(""+126640);
-        games.add(g);
-        g = downloadGame(""+126510);
-        games.add(g);
-        g = downloadGame(""+126915);
-        games.add(g);
-        g = downloadGame(""+126567);
-        games.add(g);
-        
-        games.sortByReleaseDate();
-        
-        System.out.println(games);
+        try {
+            DirectoryManager.exportGame(g);
+            DirectoryManager.exportGame(f);
+            DirectoryManager.exportGame(h);
+        } catch (Exception ex) {
+            Logger.getLogger(GamestopApp.class.getName()).log(Level.SEVERE, null, ex);
+        }
         
     }
     

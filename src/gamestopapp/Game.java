@@ -8,6 +8,7 @@ import java.util.List;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
+import org.jsoup.nodes.Node;
 import org.jsoup.nodes.TextNode;
 import org.jsoup.select.Elements;
 
@@ -518,13 +519,36 @@ public final class Game extends GamePreview {
         if ( descriptionCopy == null )
             descriptionCopy = new String();        
         
-        this.description = new String();
-
-        for (Element e : prodDesc.getElementsByTag("p")) {
-            for (TextNode tn : e.textNodes()) {
-                description += tn.text() + "\n";
-            }
+        // ----------------------------------------
+        
+        // NEED REVISION
+        
+        description = new String();
+        
+        // remove uneccesary div
+        prodDesc.getElementsByClass("prodToTop").remove();
+        prodDesc.getElementsByClass("prodSecHead").remove();       
+        
+        // wholeText() crea artefatti nel testo
+        // per questo motivo suddivido i blocchi di testo e poi eseguo un trim()
+        String[] text = prodDesc.wholeText().split("\n");
+        for ( int i=0; i<text.length; ++i ){            
+            text[i] = text[i].trim();            
+            description += text[i] + "\n";
         }
+        
+        // vado a capo ogni volta che c'è un .
+        description = description.replace(". ", ".\n");
+        
+        // faccio un trim per rimuovere \n all'inizio o alla fine
+        description = description.trim();
+        
+        // elimino tutti i \n in eccesso
+        while ( description.contains("\n\n\n") ) {
+            description = description.replace("\n\n\n", "\n\n");
+        }        
+        
+        // ------------------------------------------
         
         if ( !description.equals(descriptionCopy) )
             changes = true;
