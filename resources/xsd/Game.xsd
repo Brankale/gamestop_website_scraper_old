@@ -33,7 +33,22 @@
 							</xs:element>
 
 							<xs:element name="preorderPrice" minOccurs="0" type="xs:double"/>
+							<xs:element name="olderPreorderPrices" minOccurs="0">
+								<xs:complexType>
+									<xs:sequence>
+										<xs:element name="price" type="xs:double" minOccurs="1" maxOccurs="unbounded"/>
+									</xs:sequence>
+								</xs:complexType>
+							</xs:element>
+
 							<xs:element name="digitalPrice" minOccurs="0" type="xs:double"/>
+							<xs:element name="olderDigitalPrices" minOccurs="0">
+								<xs:complexType>
+									<xs:sequence>
+										<xs:element name="price" type="xs:double" minOccurs="1" maxOccurs="unbounded"/>
+									</xs:sequence>
+								</xs:complexType>
+							</xs:element>
                                                         
 						</xs:sequence>
 					</xs:complexType>
