@@ -156,10 +156,16 @@ public final class Game extends GamePreview {
         
         if ( hasPreorderPrice() ){
             str += "preorderPrice = " + preorderPrice + "\n ";
+            
+            if ( hasOlderPreorderPrices() )
+                str += "olderPreorderPrices = " + olderPreorderPrices + "\n ";
         }
         
         if ( hasDigitalPrice() ){
             str += "digitalPrice = " + digitalPrice + "\n ";
+            
+            if ( hasOlderDigitalPrices() )
+                str += "olderDigitalPrices = " + olderDigitalPrices + "\n ";
         }
         
         if ( hasPromo() ){
@@ -341,6 +347,8 @@ public final class Game extends GamePreview {
         this.digitalPrice = null;
         this.olderNewPrices = null;
         this.olderUsedPrices = null;
+        this.olderPreorderPrices = null;
+        this.olderDigitalPrices = null;
 
         for (Element singleVariantDetails : buySection.getElementsByClass("singleVariantDetails")) {
             
@@ -392,6 +400,17 @@ public final class Game extends GamePreview {
                 String price = singleVariantText.getElementsByClass("prodPriceCont").get(0).text();
                 
                 this.digitalPrice = stringToPrice(price);
+                
+                // OLDER DIGITAL PRICE : need revision / example cases
+                
+                singleVariantText.getElementsByClass("pricetext2").remove();
+                singleVariantText.getElementsByClass("detailsLink").remove();
+                price = singleVariantText.text().replaceAll("[^0-9.,]","");
+                
+                if ( !price.isEmpty() ){
+                    olderDigitalPrices = new ArrayList<>();
+                    olderDigitalPrices.add(stringToPrice(price));
+                }
             }
         }
         

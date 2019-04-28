@@ -9,20 +9,16 @@ public class GamestopApp {
 
     public static void main(String[] args) {
         
-        // WRITE HERE THE TEST CODE
-
-        Game g = downloadGame("21782");
-        Game f = downloadGame("126640");
-        Game h = downloadGame("126072");        
-        
-        System.out.println(g);
-        System.out.println(f);
-        System.out.println(h);        
-        
         try {
-            DirectoryManager.exportGame(g);
-            DirectoryManager.exportGame(f);
-            DirectoryManager.exportGame(h);
+            
+            Games games = DirectoryManager.importGames();
+            for ( GamePreview gp : games ){
+                System.out.println( (Game)gp );
+            }
+            
+            
+        } catch (IOException ex) {
+            Logger.getLogger(GamestopApp.class.getName()).log(Level.SEVERE, null, ex);
         } catch (Exception ex) {
             Logger.getLogger(GamestopApp.class.getName()).log(Level.SEVERE, null, ex);
         }

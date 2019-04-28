@@ -29,6 +29,8 @@ public class GamePreview implements Comparable<GamePreview> {
     protected Double digitalPrice;
     protected List<Double> olderNewPrices;
     protected List<Double> olderUsedPrices;
+    protected List<Double> olderDigitalPrices;
+    protected List<Double> olderPreorderPrices;
     
     protected List<String> pegi;
     protected String releaseDate;
@@ -99,6 +101,26 @@ public class GamePreview implements Comparable<GamePreview> {
         if ( olderUsedPrices == null )
             return false;
         return olderUsedPrices.size() > 0;
+    }
+    
+    public List<Double> getOlderPreorderPrices() {
+        return olderPreorderPrices;
+    }
+    
+    public boolean hasOlderPreorderPrices() {
+        if ( olderPreorderPrices == null )
+            return false;
+        return olderPreorderPrices.size() > 0;
+    }
+    
+    public List<Double> getOlderDigitalPrices() {
+        return olderDigitalPrices;
+    }
+    
+    public boolean hasOlderDigitalPrices() {        
+        if ( olderDigitalPrices == null )
+            return false;
+        return olderDigitalPrices.size() > 0;
     }
 
     public List<String> getPegi() {
@@ -199,6 +221,12 @@ public class GamePreview implements Comparable<GamePreview> {
         if ( olderUsedPrices != null )
             str += " olderUsedPrices = " + olderUsedPrices + "\n";
         
+        if ( olderPreorderPrices != null )
+            str += " olderPreorderPrices = " + olderPreorderPrices + "\n";
+        
+        if ( olderDigitalPrices != null )
+            str += " olderDigitalPrices = " + olderDigitalPrices + "\n";
+        
         if ( pegi != null )
             str += " pegi = " + pegi + "\n";
         
@@ -296,15 +324,59 @@ public class GamePreview implements Comparable<GamePreview> {
             }
             
             e = game.getElementsByClass("buyPresell");
-            if ( !e.isEmpty() ){
-                String price = e.get(0).text();
-                gamePreview.preorderPrice = stringToPrice(price);
+            if ( !e.isEmpty() ){                
+                Elements prices = e.get(0).getElementsByTag("em");
+                
+                // if there's just one price
+                // NB: <em> tag is present only if there are multiple prices
+                if ( prices.isEmpty() ){
+                    String price = e.get(0).text();
+                    gamePreview.preorderPrice = stringToPrice(price);
+                }
+                
+                // if more than one price is present
+                if ( prices.size() > 1 ) {
+                    gamePreview.olderPreorderPrices = new ArrayList<>();
+                
+                    // memorize the prices
+                    for ( int i=0; i<prices.size(); ++i ){                    
+                        String price = prices.get(i).text();
+
+                        if ( i==0 ){
+                            gamePreview.preorderPrice = stringToPrice(price);
+                        } else {
+                            gamePreview.olderPreorderPrices.add(stringToPrice(price));
+                        }                    
+                    }
+                }
             }
             
             e = game.getElementsByClass("buyDLC");
-            if ( !e.isEmpty() ){
-                String price = e.get(0).text();
-                gamePreview.digitalPrice = stringToPrice(price);
+            if ( !e.isEmpty() ){                
+                Elements prices = e.get(0).getElementsByTag("em");
+                
+                // if there's just one price
+                // NB: <em> tag is present only if there are multiple prices
+                if ( prices.isEmpty() ){
+                    String price = e.get(0).text();
+                    gamePreview.digitalPrice = stringToPrice(price);
+                }
+                
+                // if more than one price is present
+                if ( prices.size() > 1 ) {
+                    gamePreview.olderDigitalPrices = new ArrayList<>();
+                
+                    // memorize the prices
+                    for ( int i=0; i<prices.size(); ++i ){                    
+                        String price = prices.get(i).text();
+
+                        if ( i==0 ){
+                            gamePreview.digitalPrice = stringToPrice(price);
+                        } else {
+                            gamePreview.olderDigitalPrices.add(stringToPrice(price));
+                        }                    
+                    }
+                }
             }
             
             gamePreview.pegi = new ArrayList<>();

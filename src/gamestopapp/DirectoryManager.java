@@ -181,11 +181,37 @@ public class DirectoryManager {
             prices.appendChild(elementPreorderPrice); 
         }
         
+        //Element OlderPreorderPrices
+        if( game.hasOlderPreorderPrices() ){
+            Element elementOlderPreorderPrice = doc.createElement("olderPreorderPrices");
+            
+            for(Double price : game.getOlderDigitalPrices()){
+                Element elementPrice = doc.createElement("price");
+                elementPrice.setTextContent(price.toString());
+                elementOlderPreorderPrice.appendChild(elementPrice);
+            }
+            
+            prices.appendChild(elementOlderPreorderPrice);
+        }
+        
         //Element DigitalPrice
         if( game.hasDigitalPrice() ){
             Element elementDigitalPrice = doc.createElement("digitalPrice");
             elementDigitalPrice.setTextContent(String.valueOf(game.getDigitalPrice()));
             prices.appendChild(elementDigitalPrice); 
+        }
+        
+        //Element OlderDigitalPrices
+        if( game.hasOlderDigitalPrices() ){
+            Element elementolderDigitalPrice = doc.createElement("olderDigitalPrices");
+            
+            for(Double price : game.getOlderDigitalPrices()){
+                Element elementPrice = doc.createElement("price");
+                elementPrice.setTextContent(price.toString());
+                elementolderDigitalPrice.appendChild(elementPrice);
+            }
+            
+            prices.appendChild(elementolderDigitalPrice);
         }
         
         gameElement.appendChild(prices);
@@ -359,11 +385,35 @@ public class DirectoryManager {
             game.preorderPrice = Double.valueOf(preorderPrice.getTextContent());
         }
         
+        //OLDER PREORDER PRICES
+        nl = prices.getElementsByTagName("olderPreorderPrices");
+        if(nl.getLength() > 0){
+            game.olderPreorderPrices = new ArrayList();
+            Element olderPreorderPrices = (Element)nl.item(0);
+            nl = olderPreorderPrices.getElementsByTagName("price");
+            for(int i = 0; i<nl.getLength(); i++){
+                Element elementPrice = (Element)nl.item(i);
+                game.olderPreorderPrices.add(Double.valueOf(elementPrice.getTextContent()));
+            }
+        }
+        
         //DIGITAL PRICE
         nl = prices.getElementsByTagName("digitalPrice");
         if(nl.getLength() > 0){
             Element digitalPrice = (Element)nl.item(0);
             game.digitalPrice = Double.valueOf(digitalPrice.getTextContent());
+        }
+        
+        //OLDER DIGITAL PRICES
+        nl = prices.getElementsByTagName("olderDigitalPrices");
+        if(nl.getLength() > 0){
+            game.olderDigitalPrices = new ArrayList();
+            Element olderDigitalPrices = (Element)nl.item(0);
+            nl = olderDigitalPrices.getElementsByTagName("price");
+            for(int i = 0; i<nl.getLength(); i++){
+                Element elementPrice = (Element)nl.item(i);
+                game.olderDigitalPrices.add(Double.valueOf(elementPrice.getTextContent()));
+            }
         }
         
         //PEGI
