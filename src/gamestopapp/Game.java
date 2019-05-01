@@ -640,9 +640,82 @@ public final class Game extends GamePreview {
 
     }
 
-    public void update() throws IOException {
-        // not implemented
-        Log.warning("Game", "Method not implemented");
+    public ArrayList<String> update() throws IOException {
+
+        ArrayList<String> notifications = new ArrayList();
+
+        // SAVE INFO BEFORE UPDATE
+        Double mainPrice = null;
+        Double usedPrice = null;
+        boolean preorder = hasPreorderPrice();
+        boolean promo = hasPromo();                 //TODO: brutto (verificare numero promo)
+
+        if ( this.hasNewPrice() )
+            mainPrice = this.getNewPrice();
+        if ( this.hasUsedPrice() )
+            usedPrice = this.getUsedPrice();
+        if ( this.hasDigitalPrice() )
+            mainPrice = this.getDigitalPrice();
+        if ( this.hasPreorderPrice() )
+            mainPrice = this.getPreorderPrice();
+
+        // DOWNLOAD HTML
+        Document html = Jsoup.connect( getURL() ).get();
+        Element body = html.body();
+
+        // UPDATE METADATA
+        updateMetadata(body);
+
+        // UPDATE PRICES
+        if ( updatePrices(body) == true ) {
+
+            //IF THE GAME HAS BEEN RELEASED
+            if ( hasPreorderPrice() != preorder ){
+                notifications.add("Il gioco è uscito");
+            }
+
+            // IF PRICES ARE LOWER
+            if ( mainPrice != null ){
+                if ( this.hasNewPrice() ){
+                    if ( mainPrice > this.getNewPrice() ){
+                        notifications.add("Il prezzo del NUOVO è diminuito");
+                    }
+                }
+
+                if ( this.hasDigitalPrice() ){
+                    if ( mainPrice > this.getDigitalPrice() ){
+                        notifications.add("Il prezzo della versione DIGITALE è diminuito");
+                    }
+                }
+
+                if ( this.hasPreorderPrice() ){
+                    if ( mainPrice > this.getPreorderPrice() ){
+                        notifications.add("Il prezzo del PREORDINE è diminuito");
+                    }
+                }
+            }
+
+            if ( this.hasUsedPrice() && usedPrice!=null){
+                if ( usedPrice > this.getUsedPrice() ){
+                    notifications.add("Il prezzo dell'USATO è diminuito");
+                }
+            }
+
+        }
+
+        if ( updateBonus(body) == true ){
+            if ( hasPromo() == true && promo == false ){
+                notifications.add("Il gioco è in promozione");
+            }
+        }
+
+        try {
+            DirectoryManager.exportGame(this);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return notifications;
     }
 
 }
