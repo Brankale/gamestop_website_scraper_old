@@ -239,7 +239,7 @@ public class GamePreview implements Comparable<GamePreview> {
 
     @Override
     public int compareTo(GamePreview gamePreview) {
-        return title.compareTo(gamePreview.title);
+        return title.compareToIgnoreCase(gamePreview.title);
     }
     
     public static Games searchGame(String searchedGameName) throws UnsupportedEncodingException, IOException {

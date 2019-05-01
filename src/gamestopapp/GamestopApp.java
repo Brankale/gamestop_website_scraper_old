@@ -8,30 +8,9 @@ import javax.net.ssl.SSLException;
 public class GamestopApp {
 
     public static void main(String[] args) {
-        
-        try {
-            
-            Games games = DirectoryManager.importGames();
-            for ( GamePreview gp : games ){
-                System.out.println( (Game)gp );
-            }
-            
-            
-        } catch (IOException ex) {
-            Logger.getLogger(GamestopApp.class.getName()).log(Level.SEVERE, null, ex);
-        } catch (Exception ex) {
-            Logger.getLogger(GamestopApp.class.getName()).log(Level.SEVERE, null, ex);
-        }
-        
+        // WRITE THE TEST CODE HERE
     }
-    
-    /**
-     * Scarica un gioco dal sito di Gamestop
-     * @param id - id del gioco
-     * @return
-     * Game - se tutto è andato correttamente
-     * null - se ci sono stati errori
-     */
+
     public static Game downloadGame ( String id ) {
         
         try {
