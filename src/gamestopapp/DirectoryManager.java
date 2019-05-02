@@ -555,7 +555,6 @@ public class DirectoryManager {
     
     // DELETE METHODS
     
-    // discutere sui parametri passati in ingresso
     public static void deleteTempGames(Games games){
         
         // make a tree with the ids to speed the operations
@@ -569,7 +568,7 @@ public class DirectoryManager {
         for ( File file : gameFolders ){
             // if the file is a folder and doesn't have the name of an id contained in the wishlist
             if ( file.isDirectory() && ids.contains(file.getName()) == false ){
-                deleteFile(file);
+                deleteFilesRecursive(file);
                 Log.info("DirectoryManager", "\""+file.getName()+"\" folder deleted");
             }
         }
@@ -577,17 +576,14 @@ public class DirectoryManager {
     }
     
     public static void deleteAllGames() {
-        File[] gameFolders = new File(getGamesDirectory()).listFiles();
-        for ( File file : gameFolders ){
-            deleteFile(file);
-        }
+        deleteFilesRecursive(new File(GAMES_DIRECTORY));
     }
     
-    private static void deleteFile(File f) {
+    private static void deleteFilesRecursive (File f) {
         
         if ( f.isDirectory() ){
             for ( File file : f.listFiles() ) {
-                deleteFile(file);
+                deleteFilesRecursive(file);
             }
         }
         
