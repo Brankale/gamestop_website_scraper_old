@@ -1,6 +1,6 @@
 # GamestopApp
-Gamestop website parser to retrieve information about games.
-This program is outdated.
+Gamestop website parser to retrieve information about games.  
+This program is outdated.  
 Look at the [Android App](https://github.com/Brankale/gamestop_android_app) if you want a reference.
 
 ## Dependencies:
