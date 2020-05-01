@@ -1,6 +1,7 @@
 # GamestopApp
-Create a list of games to keep an eye at their prices.
-See also the [Android App](https://github.com/Baldi00/GamestopApp-Android).
+Gamestop website parser to retrieve information about games.
+This program is outdated.
+Look at the [Android App](https://github.com/Brankale/gamestop_android_app) if you want a reference.
 
 ## Dependencies:
 - [Jsoup](https://jsoup.org/download) (you can also find it in /lib/jsoup folder)
